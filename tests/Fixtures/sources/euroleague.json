@@ -1,0 +1,142 @@
+{
+    "data": [
+        {
+            "id": "17b46ddd-0884-406c-97a0-13f60cae97cc",
+            "identifier": "E2026_31",
+            "gameCode": 31,
+            "season": {
+                "name": "EuroLeague 2026-27",
+                "code": "E2026",
+                "alias": "2026-27",
+                "competitionCode": "E",
+                "year": 2026,
+                "startDate": "2026-07-01T00:00:00"
+            },
+            "group": {
+                "id": "c3243224-039c-4e93-9e16-12a7f4b2d383",
+                "order": 1,
+                "name": "Group Regular Season",
+                "rawName": "Regular Season"
+            },
+            "phaseType": {
+                "code": "RS",
+                "alias": "REGULAR SEASON",
+                "name": "Regular Season",
+                "isGroupPhase": true
+            },
+            "round": 4,
+            "roundAlias": "Round 4",
+            "roundName": "Round 4",
+            "played": false,
+            "date": "2026-10-07T20:45:00",
+            "confirmedDate": true,
+            "confirmedHour": true,
+            "localTimeZone": 2,
+            "localDate": "2026-10-07T20:45:00",
+            "utcDate": "2026-10-07T18:45:00Z",
+            "local": {
+                "club": {
+                    "code": "PRS",
+                    "name": "Paris Basketball",
+                    "abbreviatedName": "Paris",
+                    "editorialName": "Paris",
+                    "tvCode": "PBB",
+                    "isVirtual": false,
+                    "images": {
+                        "crest": "https://media-cdn.incrowdsports.com/a033e5b3-0de7-48a3-98d9-d9a4b9df1f39.png"
+                    }
+                },
+                "score": 0,
+                "standingsScore": 0,
+                "partials": {
+                    "partials1": 0,
+                    "partials2": 0,
+                    "partials3": 0,
+                    "partials4": 0,
+                    "extraPeriods": {}
+                }
+            },
+            "road": {
+                "club": {
+                    "code": "ASV",
+                    "name": "LDLC ASVEL Villeurbanne",
+                    "abbreviatedName": "LDLC ASVEL",
+                    "editorialName": "ASVEL",
+                    "tvCode": "ASV",
+                    "isVirtual": false,
+                    "images": {
+                        "crest": "https://media-cdn.incrowdsports.com/e33c6d1a-95ca-4dbc-b8cb-0201812104cc.png"
+                    }
+                },
+                "score": 0,
+                "standingsScore": 0,
+                "partials": {
+                    "partials1": 0,
+                    "partials2": 0,
+                    "partials3": 0,
+                    "partials4": 0,
+                    "extraPeriods": {}
+                }
+            },
+            "audience": 0,
+            "audienceConfirmed": false,
+            "socialFeed": "",
+            "operationsCode": null,
+            "referee1": {
+                "code": "OACA",
+                "name": "RYZHYK, BORYS",
+                "alias": "RYZHYK, B.",
+                "country": {
+                    "code": "UKR",
+                    "name": "Ukraine"
+                },
+                "images": {
+                    "verticalSmall": "8868n7x43bynj5fi"
+                },
+                "active": true
+            },
+            "referee2": {
+                "code": "OJLN",
+                "name": "RACYS, SAULIUS",
+                "alias": "RACYS, S.",
+                "country": {
+                    "code": "SWE",
+                    "name": "Sweden"
+                },
+                "images": {
+                    "verticalSmall": "8863qecdbweor58t"
+                },
+                "active": true
+            },
+            "referee3": {
+                "code": "QJMA",
+                "name": "TSAROUCHA, VASILIKI",
+                "alias": "TSAROUCHA, V.",
+                "country": {
+                    "code": "GRE",
+                    "name": "Greece"
+                },
+                "images": {
+                    "verticalSmall": "9ybhvmvviw9hqohm"
+                },
+                "active": true
+            },
+            "referee4": null,
+            "venue": {
+                "name": "ADIDAS ARENA",
+                "code": "AVB11",
+                "capacity": 8000,
+                "address": "56 Boulevard Ney, 75018 Paris, France",
+                "images": {
+                    "medium": null
+                },
+                "active": true,
+                "notes": ""
+            },
+            "isNeutralVenue": false,
+            "gameStatus": "Confirmed",
+            "winner": null
+        }
+    ],
+    "total": 1
+}

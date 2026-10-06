@@ -1,0 +1,210 @@
+{
+    "Ts": 1791280856,
+    "Stages": [
+        {
+            "Sid": "25851",
+            "Snm": "NHL: Regular season",
+            "Scd": "nhl-regular-season",
+            "Cnm": "NHL",
+            "CnmT": "nhl",
+            "Csnm": "NHL",
+            "Ccd": "nhl",
+            "Scu": 0,
+            "badgeUrl": "nhl-2024.png",
+            "Events": [
+                {
+                    "Eid": "1835026",
+                    "Pids": {
+                        "112": "SBTE_2_1028409879",
+                        "8": "1835026"
+                    },
+                    "Media": {
+                        "112": [
+                            {
+                                "eventId": "NHL.tv",
+                                "provider": "ABELSON",
+                                "type": "TV_CHANNEL",
+                                "allowedCountries": ["IE", "GB"]
+                            }
+                        ]
+                    },
+                    "Tr1": "5",
+                    "Tr2": "0",
+                    "Tr1OR": "5",
+                    "Tr2OR": "0",
+                    "Tr1Pe1": "1",
+                    "Tr2Pe1": "0",
+                    "Tr1Pe2": "3",
+                    "Tr2Pe2": "0",
+                    "Tr1Pe3": "1",
+                    "Tr2Pe3": "0",
+                    "T1": [
+                        {
+                            "ID": "1609",
+                            "Nm": "Dallas Stars",
+                            "Img": "enet/264.png",
+                            "Abr": "DAL",
+                            "Fc": "006847",
+                            "Sc": "000000"
+                        }
+                    ],
+                    "T2": [
+                        {
+                            "ID": "1638",
+                            "Nm": "San Jose Sharks",
+                            "Img": "enet/267.png",
+                            "Abr": "SJS",
+                            "Fc": "006D75",
+                            "Sc": "000000"
+                        }
+                    ],
+                    "Eps": "FT",
+                    "Esid": 6,
+                    "Epr": 2,
+                    "Ecov": 0,
+                    "ErnInf": "1",
+                    "Ewt": 1,
+                    "Et": 1,
+                    "Esd": 20261006000000,
+                    "EO": 524397,
+                    "EOX": 524397,
+                    "Spid": 5,
+                    "Pid": 8
+                },
+                {
+                    "Eid": "1835008",
+                    "Pids": {
+                        "112": "SBTE_2_1028409886",
+                        "8": "1835008"
+                    },
+                    "Media": {
+                        "112": [
+                            {
+                                "eventId": "NHL.tv",
+                                "provider": "ABELSON",
+                                "type": "TV_CHANNEL",
+                                "allowedCountries": ["IE", "GB"]
+                            }
+                        ]
+                    },
+                    "T1": [
+                        {
+                            "ID": "1559",
+                            "Nm": "Buffalo Sabres",
+                            "Img": "enet/277.png",
+                            "Abr": "BUF",
+                            "Fc": "003087",
+                            "Sc": "FFB81C"
+                        }
+                    ],
+                    "T2": [
+                        {
+                            "ID": "1601",
+                            "Nm": "Minnesota Wild",
+                            "Img": "enet/315.png",
+                            "Abr": "MIN",
+                            "Fc": "154734",
+                            "Sc": "DDCBA4"
+                        }
+                    ],
+                    "Eps": "NS",
+                    "Esid": 1,
+                    "Epr": 0,
+                    "Ecov": 0,
+                    "ErnInf": "1",
+                    "Et": 1,
+                    "Esd": 20261006230000,
+                    "EO": 524295,
+                    "EOX": 524295,
+                    "Spid": 5,
+                    "Pid": 8
+                }
+            ]
+        },
+        {
+            "Sid": "25522",
+            "Snm": "Champions League: Regular Season",
+            "Scd": "champions-league-regular-season",
+            "Cnm": "Champions League",
+            "CnmT": "champions-league",
+            "Csnm": "Champions League",
+            "Ccd": "champions-league",
+            "CompId": "99",
+            "CompN": "Champions League",
+            "CompUrlName": "champions-league",
+            "CompD": "IIHF",
+            "CompST": "IIHF",
+            "Scu": 0,
+            "Events": [
+                {
+                    "Eid": "1789416",
+                    "Pids": {
+                        "112": "SBTE_2_1027992764",
+                        "8": "1789416"
+                    },
+                    "T1": [
+                        {
+                            "ID": "1383",
+                            "Nm": "Plzen",
+                            "Img": "enet/380.png",
+                            "Abr": "PLZ"
+                        }
+                    ],
+                    "T2": [
+                        {
+                            "ID": "1625",
+                            "Nm": "Skellefteaa",
+                            "Img": "enet/414.png",
+                            "Abr": "SKE"
+                        }
+                    ],
+                    "Eps": "NS",
+                    "Esid": 1,
+                    "Epr": 0,
+                    "Ecov": 0,
+                    "ErnInf": "5",
+                    "Et": 1,
+                    "Esd": 20261006153000,
+                    "EO": 524295,
+                    "EOX": 524295,
+                    "Spid": 5,
+                    "Pid": 8
+                },
+                {
+                    "Eid": "1789420",
+                    "Pids": {
+                        "112": "SBTE_2_1027992762",
+                        "8": "1789420"
+                    },
+                    "T1": [
+                        {
+                            "ID": "1376",
+                            "Nm": "Liberec",
+                            "Img": "enet/507.png",
+                            "Abr": "LIB"
+                        }
+                    ],
+                    "T2": [
+                        {
+                            "ID": "1707",
+                            "Nm": "Froelunda HC",
+                            "Img": "enet/387.png",
+                            "Abr": "FRO"
+                        }
+                    ],
+                    "Eps": "NS",
+                    "Esid": 1,
+                    "Epr": 0,
+                    "Ecov": 0,
+                    "ErnInf": "5",
+                    "Et": 1,
+                    "Esd": 20261006160000,
+                    "EO": 524295,
+                    "EOX": 524295,
+                    "Spid": 5,
+                    "Pid": 8
+                }
+            ]
+        }
+    ]
+}

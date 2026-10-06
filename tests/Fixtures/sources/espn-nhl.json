@@ -1,0 +1,101 @@
+{
+    "leagues": [
+        {
+            "name": "National Hockey League",
+            "logos": [
+                {
+                    "href": "https://a.espncdn.com/i/teamlogos/leagues/500/nhl.png",
+                    "width": 500,
+                    "height": 500,
+                    "alt": "",
+                    "rel": ["full", "default"],
+                    "lastUpdated": "2018-06-05T12:07Z"
+                }
+            ]
+        }
+    ],
+    "events": [
+        {
+            "id": "401891815",
+            "date": "2026-10-06T23:00Z",
+            "name": "Carolina Hurricanes at Montreal Canadiens",
+            "status": {
+                "clock": 0.0,
+                "displayClock": "0:00",
+                "period": 0,
+                "type": {
+                    "id": "1",
+                    "name": "STATUS_SCHEDULED",
+                    "state": "pre",
+                    "completed": false,
+                    "description": "Scheduled",
+                    "detail": "Tue, October 6th at 7:00 PM EDT",
+                    "shortDetail": "10/6 - 7:00 PM EDT"
+                }
+            },
+            "competitions": [
+                {
+                    "competitors": [
+                        {
+                            "homeAway": "home",
+                            "score": "0",
+                            "team": {
+                                "displayName": "Montreal Canadiens",
+                                "logo": "https://a.espncdn.com/i/teamlogos/nhl/500/scoreboard/mtl.png"
+                            }
+                        },
+                        {
+                            "homeAway": "away",
+                            "score": "0",
+                            "team": {
+                                "displayName": "Carolina Hurricanes",
+                                "logo": "https://a.espncdn.com/i/teamlogos/nhl/500/scoreboard/car.png"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "401892449",
+            "date": "2026-10-06T23:00Z",
+            "name": "Nashville Predators at Toronto Maple Leafs",
+            "status": {
+                "clock": 0.0,
+                "displayClock": "0:00",
+                "period": 0,
+                "type": {
+                    "id": "1",
+                    "name": "STATUS_SCHEDULED",
+                    "state": "pre",
+                    "completed": false,
+                    "description": "Scheduled",
+                    "detail": "Tue, October 6th at 7:00 PM EDT",
+                    "shortDetail": "10/6 - 7:00 PM EDT"
+                }
+            },
+            "competitions": [
+                {
+                    "competitors": [
+                        {
+                            "homeAway": "home",
+                            "score": "0",
+                            "team": {
+                                "displayName": "Toronto Maple Leafs",
+                                "logo": "https://a.espncdn.com/i/teamlogos/nhl/500/scoreboard/tor.png"
+                            }
+                        },
+                        {
+                            "homeAway": "away",
+                            "score": "0",
+                            "team": {
+                                "displayName": "Nashville Predators",
+                                "logo": "https://a.espncdn.com/i/teamlogos/nhl/500/scoreboard/nsh.png"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
