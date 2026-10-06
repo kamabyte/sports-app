@@ -13,6 +13,9 @@
 Laravel 13 + Inertia 3 + React 19 + TypeScript, Tailwind 4, shadcn/ui,
 Fortify (вход, 2FA, passkeys), Sanctum (токены ТВ-клиентов), SQLite.
 
+Документация на английском: [архитектура](docs/architecture.md),
+[API для ТВ-клиентов](docs/api.md), [эксплуатация](docs/operations.md).
+
 ## Запуск
 
 ```bash
