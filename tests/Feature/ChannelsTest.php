@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\DeferBroadcastPages;
 use App\Models\Channel;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -18,15 +19,13 @@ beforeEach(function (): void {
     $this->user = User::factory()->create();
 });
 
-it('lists channels with matches in the sidebar, marking those on air', function (): void {
+it('does not load channels into shared page props', function (): void {
     $this->actingAs($this->user)->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page
-        // FOX Sports без матчей — не в панели.
-        ->has('sidebarChannels', 2)
-        ->where('sidebarChannels.0.name', 'Матч! Планета')
-        ->where('sidebarChannels.0.on_air', true));
+        ->missing('sidebarChannels'));
 });
 
-it('shows all channels with what is on now', function (): void {
+it('preserves the deferred channel listing', function (): void {
+    $this->withoutMiddleware(DeferBroadcastPages::class);
     $this->actingAs($this->user)->get('/channels')->assertOk()->assertInertia(fn (Assert $page) => $page
         ->component('channels')
         ->has('channels', 3)
@@ -34,7 +33,8 @@ it('shows all channels with what is on now', function (): void {
         ->where('channels.2.now', null));
 });
 
-it('shows a channel with its stream and matches', function (): void {
+it('preserves the deferred channel page', function (): void {
+    $this->withoutMiddleware(DeferBroadcastPages::class);
     $channel = Channel::query()->where('name', 'Матч! Игра')->sole();
 
     $this->actingAs($this->user)->get("/channels/{$channel->id}")->assertOk()->assertInertia(fn (Assert $page) => $page
@@ -64,4 +64,9 @@ it('serves channels to TV clients', function (): void {
 it('requires login', function (): void {
     $this->get('/channels')->assertRedirect('/login');
     $this->getJson('/api/channels')->assertUnauthorized();
+});
+
+it('redirects an existing channel page while broadcasts are deferred', function (): void {
+    $channel = Channel::query()->firstOrFail();
+    $this->actingAs($this->user)->get("/channels/{$channel->id}")->assertRedirect('/schedule');
 });

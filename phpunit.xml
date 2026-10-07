@@ -38,6 +38,7 @@
         <env name="KHL_ENABLED" value="false"/>
         <env name="EUROLEAGUE_ENABLED" value="false"/>
         <env name="LIVESCORE_ENABLED" value="false"/>
+        <env name="IBU_ENABLED" value="false"/>
         <env name="DISPATCHARR_URL" value="http://dispatcharr.test"/>
         <env name="DISPATCHARR_USERNAME" value="tester"/>
         <env name="DISPATCHARR_PASSWORD" value="secret"/>

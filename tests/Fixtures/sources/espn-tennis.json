@@ -1,0 +1,303 @@
+{
+ "leagues": [
+  {
+   "id": "851",
+   "name": "ATP",
+   "abbreviation": "ATP",
+   "logos": [
+    {
+     "href": "https://a.espncdn.com/combiner/i?img=/redesign/assets/img/icons/ESPN-icon-tennis.png",
+     "width": 500,
+     "height": 500,
+     "alt": "",
+     "rel": [
+      "full",
+      "default"
+     ],
+     "lastUpdated": "2026-10-05T16:00Z"
+    },
+    {
+     "href": "https://a.espncdn.com/combiner/i?img=/redesign/assets/img/icons/ESPN-icon-tennis.png",
+     "width": 500,
+     "height": 500,
+     "alt": "",
+     "rel": [
+      "full",
+      "dark"
+     ],
+     "lastUpdated": "2026-10-05T16:00Z"
+    }
+   ]
+  }
+ ],
+ "events": [
+  {
+   "id": "5-2026",
+   "name": "Kinoshita Group Japan Open Tennis Championships",
+   "shortName": "Kinoshita Group Japan Open Tennis Championships",
+   "date": "2026-09-27T04:00Z",
+   "endDate": "2026-10-07T03:59Z",
+   "groupings": [
+    {
+     "grouping": {
+      "slug": "mens-singles",
+      "displayName": "Men's Singles"
+     },
+     "competitions": [
+      {
+       "id": "183514",
+       "date": "2026-10-06T09:10Z",
+       "startDate": "2026-10-06T09:10Z",
+       "status": {
+        "type": {
+         "name": "STATUS_FINAL",
+         "state": "post",
+         "completed": true
+        }
+       },
+       "type": {
+        "id": "1",
+        "text": "Men's Singles",
+        "slug": "mens-singles"
+       },
+       "round": {
+        "id": "7",
+        "displayName": "Final"
+       },
+       "competitors": [
+        {
+         "id": "3754",
+         "type": "athlete",
+         "order": 2,
+         "homeAway": "away",
+         "winner": false,
+         "athlete": {
+          "displayName": "Jiri Lehecka",
+          "shortName": "J. Lehecka",
+          "flag": {
+           "href": "https://a.espncdn.com/i/teamlogos/countries/500/cze.png",
+           "alt": "Czechia",
+           "rel": [
+            "country-flag"
+           ]
+          }
+         },
+         "linescores": [
+          {
+           "value": 6.0,
+           "tiebreak": 4,
+           "winner": false
+          },
+          {
+           "value": 4.0,
+           "winner": false
+          }
+         ]
+        },
+        {
+         "id": "3782",
+         "type": "athlete",
+         "order": 1,
+         "homeAway": "home",
+         "winner": true,
+         "athlete": {
+          "displayName": "Carlos Alcaraz",
+          "shortName": "C. Alcaraz",
+          "flag": {
+           "href": "https://a.espncdn.com/i/teamlogos/countries/500/esp.png",
+           "alt": "Spain",
+           "rel": [
+            "country-flag"
+           ]
+          }
+         },
+         "linescores": [
+          {
+           "value": 7.0,
+           "tiebreak": 7,
+           "winner": true
+          },
+          {
+           "value": 6.0,
+           "winner": true
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "id": "183512",
+       "date": "2026-10-05T07:25Z",
+       "startDate": "2026-10-05T07:25Z",
+       "status": {
+        "type": {
+         "name": "STATUS_FINAL",
+         "state": "post",
+         "completed": true
+        }
+       },
+       "type": {
+        "id": "1",
+        "text": "Men's Singles",
+        "slug": "mens-singles"
+       },
+       "round": {
+        "id": "6",
+        "displayName": "Semifinal"
+       },
+       "competitors": [
+        {
+         "id": "2709",
+         "type": "athlete",
+         "order": 2,
+         "homeAway": "away",
+         "winner": false,
+         "athlete": {
+          "displayName": "Jaume Munar",
+          "shortName": "J. Munar",
+          "flag": {
+           "href": "https://a.espncdn.com/i/teamlogos/countries/500/esp.png",
+           "alt": "Spain",
+           "rel": [
+            "country-flag"
+           ]
+          }
+         },
+         "linescores": [
+          {
+           "value": 7.0,
+           "winner": true
+          },
+          {
+           "value": 3.0,
+           "winner": false
+          },
+          {
+           "value": 1.0,
+           "winner": false
+          }
+         ]
+        },
+        {
+         "id": "3782",
+         "type": "athlete",
+         "order": 1,
+         "homeAway": "home",
+         "winner": true,
+         "athlete": {
+          "displayName": "Carlos Alcaraz",
+          "shortName": "C. Alcaraz",
+          "flag": {
+           "href": "https://a.espncdn.com/i/teamlogos/countries/500/esp.png",
+           "alt": "Spain",
+           "rel": [
+            "country-flag"
+           ]
+          }
+         },
+         "linescores": [
+          {
+           "value": 5.0,
+           "winner": false
+          },
+          {
+           "value": 6.0,
+           "winner": true
+          },
+          {
+           "value": 6.0,
+           "winner": true
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "grouping": {
+      "slug": "mens-doubles",
+      "displayName": "Men's Doubles"
+     },
+     "competitions": [
+      {
+       "id": "183529",
+       "date": "2026-10-06T05:05Z",
+       "startDate": "2026-10-06T05:05Z",
+       "status": {
+        "type": {
+         "name": "STATUS_FINAL",
+         "state": "post",
+         "completed": true
+        }
+       },
+       "type": {
+        "id": "3",
+        "text": "Men's Doubles",
+        "slug": "mens-doubles"
+       },
+       "round": {
+        "id": "7",
+        "displayName": "Final"
+       },
+       "competitors": [
+        {
+         "id": "10882-1965",
+         "type": "team",
+         "order": 2,
+         "homeAway": "away",
+         "winner": false,
+         "roster": {
+          "displayName": "Theo Arribage / Albano Olivetti"
+         },
+         "linescores": [
+          {
+           "value": 6.0,
+           "tiebreak": 5,
+           "winner": false
+          },
+          {
+           "value": 7.0,
+           "winner": true
+          },
+          {
+           "value": 0.0,
+           "tiebreak": 6,
+           "winner": false
+          }
+         ]
+        },
+        {
+         "id": "878-1524",
+         "type": "team",
+         "order": 1,
+         "homeAway": "home",
+         "winner": true,
+         "roster": {
+          "displayName": "Austin Krajicek / Nikola Mektic"
+         },
+         "linescores": [
+          {
+           "value": 7.0,
+           "tiebreak": 7,
+           "winner": true
+          },
+          {
+           "value": 5.0,
+           "winner": false
+          },
+          {
+           "value": 1.0,
+           "tiebreak": 10,
+           "winner": true
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

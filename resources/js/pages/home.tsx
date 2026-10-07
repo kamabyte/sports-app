@@ -30,8 +30,7 @@ export default function Home({
             <>
                 <Head title="Главная" />
                 <EmptyState icon={Trophy} title="Пока пусто">
-                    События появятся здесь, как только телегид подтянет
-                    спортивные трансляции.
+                    Матчи появятся здесь после обновления спортивного каталога.
                 </EmptyState>
             </>
         );
@@ -53,7 +52,7 @@ export default function Home({
 
                 {live.length > 0 && (
                     <Shelf
-                        title="Сейчас в эфире"
+                        title="Матчи сейчас"
                         href="/schedule"
                         icon={
                             <span className="flex size-7 items-center justify-center rounded-full bg-live/15 text-live">

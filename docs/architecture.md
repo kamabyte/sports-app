@@ -15,7 +15,7 @@ match without any broadcast is hidden.
 ```mermaid
 flowchart LR
     subgraph Schedule["fixtures:import (hourly)"]
-        KHL & ESPN & EL[Euroleague] & LS[LiveScore] & TSDB[TheSportsDB] --> FX[(fixtures)]
+        KHL & ESPN & EL[Euroleague] & IBU & LS[LiveScore] & TSDB[TheSportsDB] & FS[Flashscore lite<br/>off by default] --> FX[(fixtures)]
         FX --> MB[MatchBuilder] --> SE[(sport_events)]
     end
 
@@ -51,20 +51,33 @@ flowchart LR
   one `sport_events` row: same sport, kick-off within ±15 minutes, same teams
   (same team ids or `TeamMatch` score ≥ 1.5, not swapped). The best source
   wins for time, names, competition and score:
-  **KHL > Euroleague > ESPN > TheSportsDB > LiveScore**.
+  **KHL > Euroleague = IBU > ESPN > TheSportsDB > LiveScore > Flashscore**.
   Match ids are stable across runs; a future match that vanished from every
   source is deleted; history older than 14 days is pruned.
+- **Events without opponents** (an F1 session, a biathlon race) have no
+  `home`/`away` and carry `fixtures.title` instead (`Gulf Air Bahrain Grand
+  Prix`, `Спринт · Мужчины`). They are never merged with anything.
+- Individual sports map onto home/away: a tennis match is two players; a UFC
+  card is **one** event whose sides are the main-event fighters and whose start
+  is the main card (that is how guides name and air it).
 
 | Source              | Sports                                                     | Notes                                                               |
 | ------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------- |
 | `KhlSource`         | KHL                                                        | mobile API, Russian names, logos                                    |
-| `EspnSource`        | football (RPL, top-5, UEFA cups, Nations League), NHL, NBA | unofficial, keyless; competition logos                              |
+| `EspnSource`        | football (RPL, top-5, UEFA cups, Nations League), NHL, NBA; ATP/WTA singles, UFC cards, F1 sessions | unofficial, keyless; competition logos; tennis payload is a whole tournament, filtered by day |
 | `EuroleagueSource`  | Euroleague, EuroCup                                        | whole season in one request                                         |
+| `IbuSource`         | biathlon: World Cup, World Championships                   | official open results API; season and stage lists cached per run    |
 | `LiveScoreSource`   | hundreds of football, hockey, basketball leagues           | unofficial, personal use; ids are `sport:Eid`                       |
 | `TheSportsDbSource` | volleyball, handball, rugby                                | free key `123`: 3 matches per sport per day, ~3 requests per minute |
+| `FlashscoreSource`  | handball, volleyball, rugby, futsal, bandy, water polo     | lite HTML, **off by default** (site terms); Prague time; partial failures are warnings (`ReportsDiagnostics`) |
 
-Championat and Flashscore are deliberately **not** used: both are protected
-against bots (SberID JS check, signed requests) and we do not bypass that.
+`FlashscoreSource` (handball, volleyball, rugby, futsal, bandy, water polo) is
+**disabled by default**. It reads the public lite HTML of www.flashscore.mobi:
+plain pages, no login or signed requests. A challenge or unexpected page
+fails the day; it is never worked around. The site's terms restrict scraping,
+so enabling it is the owner's call. It has the lowest merge priority. The
+Flashscore desktop site (signed feed) and Championat (`/stat/` is behind a
+SberID JS check) are not used. Details: `docs/operations.md`.
 
 ## Stage 2 — TV guides (`app/Guide/Listings`)
 
@@ -111,8 +124,13 @@ XMLTV is not used.**
       key, exonyms, countries in ~15 languages, 2-letter abbreviations, short
       names only exact so `СКА` ≠ `ЦСКА`); live if the programme starts within
       ±45 min of kick-off (score ≥ 1.0), replay if later within 14 days (score ≥ 1.5);
-    - without teams (`Чемпионат КХЛ`): team sports only, the single match of
-      that competition starting −15/+45 min from the slot;
+    - without teams (`Чемпионат КХЛ`, `UFC 333`, `Формула-1. Гран-при
+      Бахрейна. Гонка`): the single event of that catalog competition starting
+      −15/+45 min from the slot — any event for team sports and UFC
+      (`SportRegistry::isOneEventPerSlot`), otherwise only events without
+      opponents. A tennis tournament slot (`ATP1000: Shanghai Masters`) covers
+      many matches and attaches to none. A Russian slot title renames a
+      Latin-titled race (`Гран-при Сингапура`);
     - full matches (score 2.0) teach Russian spellings (`TeamRegistry::learn`)
       and rename a Latin-named match to the Russian guide title.
 7. `airings` from the guide window start onwards are rebuilt in one transaction;

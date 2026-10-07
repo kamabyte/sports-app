@@ -12,7 +12,8 @@ use Illuminate\Support\Str;
 /**
  * Матчи из расписания: каждый fixture — в матч (sport_events). Один матч
  * у нескольких источников (КХЛ, ESPN, LiveScore) — один sport_events: тот же
- * вид спорта, начало в пределах 15 минут и те же команды.
+ * вид спорта, начало в пределах 15 минут и те же команды. Событие без
+ * соперников (сессия Формулы-1, гонка биатлона) ни с чем не объединяется.
  *
  * Основной источник матча — лучший по SOURCE_PRIORITY: его время, турнир и
  * стадия; у остальных — то, чего нет у основного. id матча не меняется
@@ -20,7 +21,7 @@ use Illuminate\Support\Str;
  */
 final readonly class MatchBuilder
 {
-    private const array SOURCE_PRIORITY = ['khl' => 0, 'euroleague' => 1, 'espn' => 2, 'thesportsdb' => 3, 'livescore' => 4];
+    private const array SOURCE_PRIORITY = ['khl' => 0, 'euroleague' => 1, 'ibu' => 1, 'espn' => 2, 'thesportsdb' => 3, 'livescore' => 4, 'flashscore' => 5];
 
     /** Один матч в двух источниках: время начала может расходиться на несколько минут. */
     private const int SAME_MATCH_MINUTES = 15;
@@ -32,6 +33,8 @@ final readonly class MatchBuilder
     private const array DURATION_MINUTES = [
         'football' => 115, 'hockey' => 150, 'basketball' => 135, 'volleyball' => 120, 'handball' => 100,
         'futsal' => 100, 'rugby' => 110, 'waterpolo' => 90, 'bandy' => 120,
+        // Турнир UFC — основной кард целиком; гонка биатлона — около часа.
+        'tennis' => 120, 'combat' => 180, 'motorsport' => 120, 'biathlon' => 80,
     ];
 
     private const int DEFAULT_DURATION_MINUTES = 120;
@@ -110,6 +113,11 @@ final readonly class MatchBuilder
             return $matches[$fixture->sport_event_id];
         }
 
+        // Событие без соперников (сессия, гонка) — своё у каждого источника: сравнивать не с чем.
+        if ($fixture->home === null || $fixture->away === null) {
+            return null;
+        }
+
         $time = $fixture->starts_at->getTimestamp();
         $step = self::SAME_MATCH_MINUTES * 60;
 
@@ -126,6 +134,10 @@ final readonly class MatchBuilder
 
     private function sameTeams(SportEvent $match, Fixture $fixture): bool
     {
+        if ($match->home === null || $match->away === null) {
+            return false;
+        }
+
         if ($match->home_team_id !== null && $match->home_team_id === $fixture->home_team_id && $match->away_team_id === $fixture->away_team_id) {
             return true;
         }
@@ -144,7 +156,7 @@ final readonly class MatchBuilder
         return SportEvent::query()->create([
             'fixture_id' => $fixture->id,
             'sport' => $fixture->sport,
-            'title' => "{$fixture->home} — {$fixture->away}",
+            'title' => $this->title($fixture),
             'home' => $fixture->homeTeam->name ?? $fixture->home,
             'away' => $fixture->awayTeam->name ?? $fixture->away,
             'starts_at' => $fixture->starts_at,
@@ -195,12 +207,22 @@ final readonly class MatchBuilder
         }
 
         $match->round ??= $fixture->round;
-        $match->title = "{$match->home} — {$match->away}";
+        if ($match->home !== null) {
+            $match->title = "{$match->home} — {$match->away}";
+        } elseif (! $secondary && ! $this->cyrillic($match->title)) {
+            // Русское название гонки из телегида (его ставит AiringMatcher) не затираем.
+            $match->title = $this->title($fixture);
+        }
         $match->search = $this->searchText($match, $fixture);
 
         if ($match->isDirty()) {
             $match->save();
         }
+    }
+
+    private function title(Fixture $fixture): string
+    {
+        return $fixture->home !== null ? "{$fixture->home} — {$fixture->away}" : (string) $fixture->title;
     }
 
     /**

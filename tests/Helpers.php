@@ -132,6 +132,27 @@ function scheduleMatch(string $sport, string $home, string $away, string $starts
     ]);
 }
 
+/**
+ * Событие без соперников из расписания: сессия Формулы-1, гонка биатлона.
+ */
+function scheduleRace(string $sport, string $title, string $competition, string $startsAt, array $attributes = []): Fixture
+{
+    $competitions = app(CompetitionRegistry::class);
+    $competitions->sync();
+
+    return Fixture::query()->create([
+        'source' => $attributes['source'] ?? 'espn',
+        'external_id' => $attributes['external_id'] ?? uniqid(),
+        'sport' => $sport,
+        'title' => $title,
+        'round' => $attributes['round'] ?? null,
+        'starts_at' => $startsAt,
+        'status' => $attributes['status'] ?? Fixture::UPCOMING,
+        'competition' => $competition,
+        'competition_id' => $competitions->resolve($sport, $competition)?->id,
+    ]);
+}
+
 /** Собрать события из расписания (как в конце fixtures:import). */
 function buildMatches(): void
 {

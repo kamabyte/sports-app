@@ -1,16 +1,10 @@
 import { CompetitionMark } from '@/components/competition-badge';
 import { Head, Link } from '@inertiajs/react';
-import { ChevronRight, MapPin, Play } from 'lucide-react';
-import {
-    BroadcastList,
-    ReplayList,
-    splitBroadcasts,
-} from '@/components/broadcast-list';
+import { ChevronRight, MapPin } from 'lucide-react';
 import { EventCard } from '@/components/event-card';
 import { EventStatusPill } from '@/components/event-status';
 import { Scoreboard } from '@/components/scoreboard';
 import { Shelf } from '@/components/shelf';
-import { Button } from '@/components/ui/button';
 import { useNow } from '@/hooks/use-now';
 import { useTimezone } from '@/hooks/use-timezone';
 import { eventBackdrop } from '@/lib/event-visuals';
@@ -26,7 +20,6 @@ export default function EventPage({ event, related }: Props) {
     const now = useNow();
     const timezone = useTimezone();
     const { status, progress } = liveState(event, now);
-    const { playable, replays } = splitBroadcasts(event.broadcasts, now);
 
     return (
         <>
@@ -84,18 +77,6 @@ export default function EventPage({ event, related }: Props) {
                         )}
 
                         <div className="flex flex-col items-center gap-3">
-                            <Button
-                                asChild
-                                size="lg"
-                                className="h-12 rounded-full bg-white px-8 text-base font-semibold text-black hover:bg-white/90"
-                            >
-                                <Link href={`/events/${event.id}/watch`}>
-                                    <Play className="size-4 fill-current" />
-                                    {status === 'live'
-                                        ? 'Смотреть'
-                                        : 'Открыть канал'}
-                                </Link>
-                            </Button>
                             {event.venue && (
                                 <span className="inline-flex items-center gap-1 text-sm text-white/70">
                                     <MapPin className="size-3.5" />{' '}
@@ -115,30 +96,7 @@ export default function EventPage({ event, related }: Props) {
                     )}
                 </section>
 
-                <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-                    <div>
-                        <h2 className="mb-4 font-display text-xl font-semibold">
-                            Где смотреть
-                        </h2>
-                        {playable.length > 0 ? (
-                            <BroadcastList
-                                eventId={event.id}
-                                broadcasts={playable}
-                            />
-                        ) : (
-                            <p className="rounded-2xl border border-dashed border-border p-4 text-sm text-muted-foreground">
-                                Сейчас этот матч на ваших каналах не показывают.
-                            </p>
-                        )}
-                        {replays.length > 0 && (
-                            <>
-                                <h3 className="mt-6 mb-2 text-sm font-semibold text-muted-foreground">
-                                    Повторы
-                                </h3>
-                                <ReplayList broadcasts={replays} />
-                            </>
-                        )}
-                    </div>
+                <section className="grid gap-8">
                     <div className="rounded-3xl border border-border/60 bg-card/50 p-5 text-sm">
                         <h2 className="mb-3 font-display text-xl font-semibold">
                             О событии
@@ -180,11 +138,6 @@ export default function EventPage({ event, related }: Props) {
                                 )}
                             </dd>
                         </dl>
-                        <p className="mt-5 rounded-2xl bg-muted/60 p-3 text-xs text-muted-foreground">
-                            Каналы найдены по телегиду источника: событие
-                            сопоставляется с записями EPG по названию турнира и
-                            командам.
-                        </p>
                     </div>
                 </section>
 

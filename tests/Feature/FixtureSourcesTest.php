@@ -5,6 +5,7 @@ use App\Guide\Fixtures\EspnSource;
 use App\Guide\Fixtures\EuroleagueSource;
 use App\Guide\Fixtures\FixtureImporter;
 use App\Guide\Fixtures\FixtureSource;
+use App\Guide\Fixtures\IbuSource;
 use App\Guide\Fixtures\KhlSource;
 use App\Guide\Fixtures\LiveScoreSource;
 use App\Guide\Matches\MatchBuilder;
@@ -43,6 +44,75 @@ it('reads ESPN scoreboards', function (): void {
         ->and($fixtures[0]->status)->toBe(Fixture::UPCOMING)
         ->and($fixtures[0]->competition)->toBe('National Hockey League')
         ->and($fixtures[0]->homeLogo)->toContain('espncdn.com');
+});
+
+it('reads tennis singles of the day from a whole ESPN tournament', function (): void {
+    Http::fake(['site.api.espn.com/*' => Http::response(sourceSample('espn-tennis'))]);
+
+    $fixtures = (new EspnSource(['tennis/atp' => 'tennis']))->fixtures($this->day);
+
+    // Пара и матч вчерашнего дня — не в счёт.
+    expect($fixtures)->toHaveCount(1)
+        ->and($fixtures[0]->home)->toBe('Carlos Alcaraz')
+        ->and($fixtures[0]->away)->toBe('Jiri Lehecka')
+        ->and($fixtures[0]->startsAt->toIso8601String())->toBe('2026-10-06T09:10:00+00:00')
+        ->and($fixtures[0]->status)->toBe(Fixture::FINISHED)
+        ->and($fixtures[0]->competition)->toBe('ATP')
+        ->and($fixtures[0]->round)->toStartWith('Kinoshita Group Japan Open Tennis Championships · ')
+        ->and([$fixtures[0]->homeScore, $fixtures[0]->awayScore])->toBe([2, 0])
+        ->and($fixtures[0]->homeLogo)->toContain('/countries/');
+});
+
+it('reads a UFC card as one event named by its main fight', function (): void {
+    Http::fake(['site.api.espn.com/*' => Http::response(sourceSample('espn-ufc'))]);
+
+    $fixtures = (new EspnSource(['mma/ufc' => 'combat']))->fixtures(CarbonImmutable::parse('2026-10-24', 'UTC'));
+
+    // Начало — основной кард (18:00), а не первый бой (14:00).
+    expect($fixtures)->toHaveCount(1)
+        ->and($fixtures[0]->home)->toBe('Alexander Volkanovski')
+        ->and($fixtures[0]->away)->toBe('Movsar Evloev')
+        ->and($fixtures[0]->startsAt->toIso8601String())->toBe('2026-10-24T18:00:00+00:00')
+        ->and($fixtures[0]->competition)->toBe('UFC 333')
+        ->and($fixtures[0]->status)->toBe(Fixture::UPCOMING);
+});
+
+it('reads each Formula 1 session of the day without opponents', function (): void {
+    Http::fake(['site.api.espn.com/*' => Http::response(sourceSample('espn-f1'))]);
+    $source = new EspnSource(['racing/f1' => 'motorsport']);
+
+    $saturday = $source->fixtures(CarbonImmutable::parse('2026-10-03', 'UTC'));
+    $race = $source->fixtures(CarbonImmutable::parse('2026-10-04', 'UTC'))[0];
+
+    expect(array_map(fn ($session) => $session->round, $saturday))->toBe(['3-я практика', 'Квалификация'])
+        ->and($race->hasTeams())->toBeFalse()
+        ->and($race->title)->toBe('Gulf Air Bahrain Grand Prix in Malaysia')
+        ->and($race->round)->toBe('Гонка')
+        ->and($race->competition)->toBe('Formula 1')
+        ->and($race->startsAt->toIso8601String())->toBe('2026-10-04T07:00:00+00:00')
+        ->and($race->status)->toBe(Fixture::FINISHED);
+});
+
+it('reads biathlon races from IBU once per season and stage', function (): void {
+    Http::fake([
+        '*/api/Events*' => Http::response(sourceSample('ibu-events')),
+        '*/api/Competitions*' => Http::response(sourceSample('ibu-competitions')),
+    ]);
+    $source = new IbuSource;
+
+    $saturday = $source->fixtures(CarbonImmutable::parse('2026-11-28', 'UTC'));
+    $sunday = $source->fixtures(CarbonImmutable::parse('2026-11-29', 'UTC'));
+
+    Http::assertSentCount(2);
+    Http::assertSent(fn ($request) => str_contains($request->url(), '/Events?SeasonId=2627&Level=1'));
+    expect(array_map(fn ($race) => $race->title, $saturday))->toBe(['Одиночная смешанная эстафета', 'Смешанная эстафета'])
+        ->and($saturday[0]->competition)->toBe('Кубок мира')
+        ->and(array_map(fn ($race) => $race->title, $sunday))->toBe(['Спринт · Мужчины', 'Спринт · Женщины'])
+        ->and($sunday[1]->competition)->toBe('Кубок мира · Женщины')
+        ->and($sunday[1]->round)->toBe('Kontiolahti')
+        ->and($sunday[1]->hasTeams())->toBeFalse()
+        ->and($sunday[1]->startsAt->toIso8601String())->toBe('2026-11-29T15:15:00+00:00')
+        ->and($sunday[1]->status)->toBe(Fixture::UPCOMING);
 });
 
 it('reads KHL games in Russian', function (): void {

@@ -59,6 +59,13 @@ final readonly class FixtureImporter
                 }
             }
 
+            // Частичные сбои источника (один вид спорта, пропущенные строки) — в предупреждения.
+            if ($source instanceof ReportsDiagnostics) {
+                foreach ($source->diagnostics() as $diagnostic) {
+                    $errors[] = "{$source->key()}: {$diagnostic}";
+                }
+            }
+
             if ($source instanceof ProvidesCompetitionLogos) {
                 foreach ($source->competitionLogos() as $logo) {
                     $competition = $this->competitions->resolve($logo['sport'], $logo['name']);
@@ -83,23 +90,27 @@ final readonly class FixtureImporter
         }
 
         // Сборные — по стране, с флагом; клубы — по написанию, с эмблемой источника.
-        $national = NationalTeams::match($data->home, $data->away);
-        if ($national !== null) {
+        // У гонки соперников нет.
+        $national = $data->hasTeams() ? NationalTeams::match((string) $data->home, (string) $data->away) : null;
+        if (! $data->hasTeams()) {
+            [$home, $away] = [null, null];
+        } elseif ($national !== null) {
             $home = $this->teams->national($data->sport, $data->home, $national[0]['code'], $national[0]['category'], $source);
             $away = $this->teams->national($data->sport, $data->away, $national[1]['code'], $national[1]['category'], $source);
         } else {
-            $home = $this->teams->fromSource($data->sport, $data->home, $source, $data->homeLogo);
-            $away = $this->teams->fromSource($data->sport, $data->away, $source, $data->awayLogo);
+            $home = $this->teams->fromSource($data->sport, (string) $data->home, $source, $data->homeLogo);
+            $away = $this->teams->fromSource($data->sport, (string) $data->away, $source, $data->awayLogo);
         }
 
         Fixture::query()->updateOrCreate(['source' => $source, 'external_id' => $data->externalId], [
-            'home_team_id' => $home->id,
-            'away_team_id' => $away->id,
+            'home_team_id' => $home?->id,
+            'away_team_id' => $away?->id,
             'competition_id' => $competition?->id,
             'sport' => $data->sport,
             'competition' => $data->competition,
             'competition_logo' => $data->competitionLogo,
             'round' => $data->round,
+            'title' => $data->title,
             'home' => $data->home,
             'away' => $data->away,
             'home_logo' => $data->homeLogo,

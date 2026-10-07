@@ -132,6 +132,72 @@ it('does not attach a broadcast to a different match', function (string $sport, 
     'different club, same generic word' => ['football', 'Real Cartagena', 'Malaga', 'Футбол. Испания. Реал Мадрид – Малага'],
 ]);
 
+it('attaches a Formula 1 session by its slot and takes the Russian title', function (): void {
+    $race = scheduleRace('motorsport', 'Gulf Air Bahrain Grand Prix in Malaysia', 'Formula 1', '2026-10-06 16:30', ['round' => 'Гонка']);
+    scheduleRace('motorsport', 'Gulf Air Bahrain Grand Prix in Malaysia', 'Formula 1', '2026-10-06 12:00', ['round' => 'Квалификация']);
+    buildMatches();
+    fakeDispatcharr([['1', '20261006162000', '20261006183000', 'Автоспорт. Формула-1. Этап 16. Гран-при Бахрейна в Малайзии. Гонка']]);
+
+    $this->artisan('guide:import')->assertSuccessful();
+
+    $event = app(EventCatalog::class)->find((string) matchOf($race)->id);
+    expect(visibleTitles())->toBe(['Гран-при Бахрейна в Малайзии'])
+        ->and($event->home)->toBeNull()
+        ->and($event->round)->toBe('Гонка')
+        ->and($event->broadcasts[0]->live)->toBeTrue();
+});
+
+it('keeps two sessions of one Grand Prix apart', function (): void {
+    scheduleRace('motorsport', 'Bahrain Grand Prix', 'Formula 1', '2026-10-06 12:00', ['round' => 'Квалификация']);
+    scheduleRace('motorsport', 'Bahrain Grand Prix', 'Formula 1', '2026-10-06 16:30', ['round' => 'Гонка']);
+    buildMatches();
+    buildMatches();
+
+    expect(SportEvent::query()->where('sport', 'motorsport')->count())->toBe(2);
+});
+
+it('attaches a biathlon race to the right gender', function (): void {
+    $men = scheduleRace('biathlon', 'Спринт · Мужчины', 'Кубок мира · Мужчины', '2026-10-06 12:00', ['source' => 'ibu']);
+    $women = scheduleRace('biathlon', 'Спринт · Женщины', 'Кубок мира · Женщины', '2026-10-06 15:15', ['source' => 'ibu']);
+    buildMatches();
+    fakeDispatcharr([['1', '20261006150500', '20261006163000', 'Биатлон. Кубок мира. Спринт. Женщины']]);
+
+    $this->artisan('guide:import')->assertSuccessful();
+
+    expect(matchOf($women)->airings()->count())->toBe(1)
+        ->and(matchOf($men)->airings()->count())->toBe(0)
+        ->and(matchOf($women)->competition)->toBe('Кубок мира · Женщины');
+});
+
+it('attaches a UFC card by its main fight', function (string $guide): void {
+    scheduleMatch('combat', 'Alexander Volkanovski', 'Movsar Evloev', '2026-10-06 18:00', ['source' => 'espn', 'competition' => 'UFC 333']);
+    buildMatches();
+    fakeDispatcharr([['1', '20261006175500', '20261006210000', $guide]]);
+
+    $this->artisan('guide:import')->assertSuccessful();
+
+    expect(SportEvent::query()->where('sport', 'combat')->sole()->airings()->sole()->live)->toBeTrue();
+})->with([
+    'english' => ['UFC 333: Volkanovski vs. Evloev'],
+    'russian' => ['ММА. UFC 333: Волкановски – Евлоев – Main Card'],
+    'card without fighters' => ['UFC 333'],
+]);
+
+it('attaches a tennis match by players, but not a tournament slot', function (): void {
+    scheduleMatch('tennis', 'Carlos Alcaraz', 'Jiri Lehecka', '2026-10-06 16:30', ['source' => 'espn', 'competition' => 'ATP']);
+    buildMatches();
+    fakeDispatcharr([
+        ['1', '20261006162000', '20261006183000', 'Теннис. ATP 500. Токио. Карлос Алькарас – Иржи Легечка'],
+        ['2', '20261006160000', '20261006220000', 'ATP1000: Rolex Shanghai Masters'],
+    ]);
+
+    $this->artisan('guide:import')->assertSuccessful();
+
+    $airings = SportEvent::query()->where('sport', 'tennis')->sole()->airings;
+    expect($airings)->toHaveCount(1)
+        ->and($airings[0]->title)->toContain('Алькарас');
+});
+
 it('shows nothing for sports the schedule does not cover', function (): void {
     fakeDispatcharr([
         ['1', '20261006110000', '20261006123000', 'Теннис: WTA 1000 Пекин: Матч 1'],

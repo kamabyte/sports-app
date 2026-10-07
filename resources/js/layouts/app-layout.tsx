@@ -4,12 +4,9 @@ import {
     House,
     type LucideIcon,
     Search,
-    Tv,
     UserRound,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { ChannelMark } from '@/components/channel-mark';
-import { LiveDot } from '@/components/live-badge';
 import { Logo, LogoMark } from '@/components/logo';
 import { SearchBox } from '@/components/search-box';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -48,7 +45,6 @@ const NAV: NavItem[] = [
 
 const TABS: NavItem[] = [
     ...NAV,
-    { href: '/channels', label: 'Каналы', icon: Tv, match: /^\/channels\b/ },
     { href: '/search', label: 'Поиск', icon: Search },
     {
         href: '/settings/profile',
@@ -115,7 +111,7 @@ function Sidebar() {
                 })}
             </nav>
 
-            {/* Виды спорта и каналы прокручиваются вместе, навигация сверху — на месте. */}
+            {/* Виды спорта прокручиваются, навигация сверху — на месте. */}
             <div className="mt-6 scrollbar-none flex min-h-0 flex-1 flex-col overflow-y-auto pb-6">
                 <SidebarHeading>Виды спорта</SidebarHeading>
                 <div className="flex flex-col gap-0.5 px-3">
@@ -159,65 +155,6 @@ function Sidebar() {
                         );
                     })}
                 </div>
-
-                {props.sidebarChannels.length > 0 && (
-                    <>
-                        <SidebarHeading href="/channels" className="mt-6">
-                            Каналы
-                        </SidebarHeading>
-                        <div className="flex flex-col gap-0.5 px-3">
-                            {props.sidebarChannels.map((channel) => {
-                                const href = `/channels/${channel.id}`;
-                                const active = url.split('?')[0] === href;
-
-                                return (
-                                    <Tooltip key={channel.id}>
-                                        <TooltipTrigger asChild>
-                                            <Link
-                                                href={href}
-                                                className={cn(
-                                                    'flex h-10 items-center justify-center gap-3 rounded-xl px-3 text-sm text-muted-foreground transition-colors hover:bg-accent/70 hover:text-foreground lg:justify-start',
-                                                    active &&
-                                                        'bg-accent text-foreground',
-                                                )}
-                                            >
-                                                <span className="relative">
-                                                    <ChannelMark
-                                                        channel={channel}
-                                                    />
-                                                    {channel.on_air && (
-                                                        <span
-                                                            className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full border-2 border-background bg-live lg:hidden"
-                                                            aria-hidden
-                                                        />
-                                                    )}
-                                                </span>
-                                                <span className="hidden min-w-0 flex-1 truncate lg:inline">
-                                                    {channel.name}
-                                                </span>
-                                                {channel.on_air && (
-                                                    <LiveDot className="hidden text-live lg:block" />
-                                                )}
-                                            </Link>
-                                        </TooltipTrigger>
-                                        <TooltipContent
-                                            side="right"
-                                            className="lg:hidden"
-                                        >
-                                            {channel.name}
-                                        </TooltipContent>
-                                    </Tooltip>
-                                );
-                            })}
-                            <Link
-                                href="/channels"
-                                className="mt-1 hidden h-9 items-center rounded-xl px-3 text-sm text-muted-foreground transition-colors hover:bg-accent/70 hover:text-foreground lg:flex"
-                            >
-                                Все каналы →
-                            </Link>
-                        </div>
-                    </>
-                )}
             </div>
         </aside>
     );
@@ -302,7 +239,7 @@ function TabBar() {
             className="fixed inset-x-0 bottom-0 z-30 border-t border-border/60 bg-chrome pb-safe backdrop-blur-xl backdrop-saturate-150 md:hidden"
             aria-label="Разделы"
         >
-            <div className="grid h-14 grid-cols-5">
+            <div className="grid h-14 grid-cols-4">
                 {TABS.map((item) => {
                     const active = isActive(item, url);
                     const Icon = item.icon;

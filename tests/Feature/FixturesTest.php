@@ -1,6 +1,8 @@
 <?php
 
 use App\Guide\Fixtures\NameSimilarity;
+use App\Guide\Teams\TeamRegistry;
+use App\Models\TeamAlias;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Http;
 
@@ -42,3 +44,14 @@ it('compares Russian and English team names', function (string $ru, string $en, 
     ['Бавария', 'Ben Aknoun', 0.0, 0.0],
     ['Эльверсберг', 'JS El Biar', 0.0, 0.0],
 ]);
+
+it('does not crash when another registry already took a spelling', function (): void {
+    $stale = new TeamRegistry;
+    $team = $stale->fromSource('handball', 'Magdeburg', 'thesportsdb', null);
+    (new TeamRegistry)->fromSource('handball', 'SC Magdeburg', 'flashscore', null);
+
+    // Устаревший кэш первого реестра не знает про «sc magdeburg».
+    $stale->learn($team, 'SC Magdeburg');
+
+    expect(TeamAlias::query()->where('alias', 'sc magdeburg')->sole()->team_id)->not->toBe($team->id);
+});

@@ -127,8 +127,12 @@ final class TeamRegistry
             return;
         }
 
-        TeamAlias::query()->create(['team_id' => $team->id, 'sport' => $team->sport, 'alias' => $alias, 'source' => $source]);
-        $this->aliases[$team->sport][$alias] = $team->id;
+        // Кэш мог устареть (другой процесс или реестр уже добавил написание) — тогда не добавляем.
+        $now = now();
+        $added = TeamAlias::query()->insertOrIgnore(['team_id' => $team->id, 'sport' => $team->sport, 'alias' => $alias, 'source' => $source, 'created_at' => $now, 'updated_at' => $now]);
+        if ($added > 0) {
+            $this->aliases[$team->sport][$alias] = $team->id;
+        }
     }
 
     private function betterLogo(Team $team, string $source): bool

@@ -2,6 +2,7 @@
 
 use App\Guide\EventCatalog;
 use App\Guide\EventQuery;
+use App\Http\Middleware\DeferBroadcastPages;
 use App\Models\Airing;
 use App\Models\Channel;
 use App\Models\SportEvent;
@@ -113,6 +114,7 @@ it('serves matches with broadcasts through the catalog, web and API', function (
         ->component('home')
         ->where('live.0.title', 'ЦСКА — СГАУ-Саратов'));
 
+    $this->withoutMiddleware(DeferBroadcastPages::class);
     $this->actingAs($user)->get("/events/{$event->id}/watch")->assertOk()->assertInertia(fn (Assert $page) => $page
         ->component('watch')
         ->where('streamUrl', 'http://dispatcharr.test/live/tester/secret/101?output_format=ts')

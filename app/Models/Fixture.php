@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * Матч из спортивного API. К нему привязываются события телегида
+ * Матч из спортивного API (или событие без соперников: сессия Формулы-1,
+ * гонка биатлона — без home/away, с title). К нему привязываются события телегида
  * (sport_events.fixture_id): у матча — точное время, счёт и эмблемы.
  *
  * @property int $id
@@ -20,8 +21,9 @@ use Illuminate\Support\Carbon;
  * @property string|null $competition
  * @property string|null $competition_logo
  * @property string|null $round
- * @property string $home
- * @property string $away
+ * @property string|null $home
+ * @property string|null $away
+ * @property string|null $title
  * @property string|null $home_logo
  * @property string|null $away_logo
  * @property Carbon $starts_at
@@ -37,7 +39,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['sport_event_id', 'home_team_id', 'away_team_id', 'competition_id', 'source', 'external_id', 'sport', 'competition', 'competition_logo', 'round', 'home', 'away', 'home_logo', 'away_logo', 'starts_at', 'status', 'home_score', 'away_score'])]
+#[Fillable(['sport_event_id', 'home_team_id', 'away_team_id', 'competition_id', 'source', 'external_id', 'sport', 'competition', 'competition_logo', 'round', 'title', 'home', 'away', 'home_logo', 'away_logo', 'starts_at', 'status', 'home_score', 'away_score'])]
 class Fixture extends Model
 {
     public const string UPCOMING = 'upcoming';

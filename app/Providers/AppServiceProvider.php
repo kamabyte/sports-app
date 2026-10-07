@@ -11,6 +11,8 @@ use App\Guide\Fixtures\EspnSource;
 use App\Guide\Fixtures\EuroleagueSource;
 use App\Guide\Fixtures\FixtureImporter;
 use App\Guide\Fixtures\FixtureSource;
+use App\Guide\Fixtures\FlashscoreSource;
+use App\Guide\Fixtures\IbuSource;
 use App\Guide\Fixtures\KhlSource;
 use App\Guide\Fixtures\LiveScoreSource;
 use App\Guide\Fixtures\TheSportsDbSource;
@@ -70,7 +72,10 @@ class AppServiceProvider extends ServiceProvider
             competitions: $this->app->make(CompetitionRegistry::class),
             daysBack: (int) config('sports.fixtures.days_back'),
             daysAhead: (int) config('sports.fixtures.days_ahead'),
-            daysAheadBySource: ['thesportsdb' => (int) config('sports.fixtures.sources.thesportsdb.days_ahead')],
+            daysAheadBySource: [
+                'thesportsdb' => (int) config('sports.fixtures.sources.thesportsdb.days_ahead'),
+                'flashscore' => min((int) config('sports.fixtures.days_ahead'), (int) config('sports.fixtures.sources.flashscore.days_ahead')),
+            ],
         ));
 
         // Один каталог на запрос: фейковый кэширует сгенерированные дни.
@@ -118,11 +123,18 @@ class AppServiceProvider extends ServiceProvider
             $enabled('khl') ? new KhlSource : null,
             $enabled('espn') ? new EspnSource($config['espn']['leagues']) : null,
             $enabled('euroleague') ? new EuroleagueSource : null,
+            $enabled('ibu') ? new IbuSource : null,
             $enabled('livescore') ? new LiveScoreSource($config['livescore']['sports']) : null,
             $enabled('thesportsdb') ? new TheSportsDbSource(
                 key: (string) $config['thesportsdb']['key'],
                 sports: $config['thesportsdb']['sports'],
                 pauseSeconds: (int) $config['thesportsdb']['pause_seconds'],
+            ) : null,
+            $enabled('flashscore') ? new FlashscoreSource(
+                sports: $config['flashscore']['sports'],
+                timezone: (string) $config['flashscore']['timezone'],
+                pauseSeconds: (int) $config['flashscore']['pause_seconds'],
+                cacheHours: (int) $config['flashscore']['cache_hours'],
             ) : null,
         ]));
     }

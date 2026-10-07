@@ -2,10 +2,8 @@
 
 namespace App\Http\Middleware;
 
-use App\Guide\Channels;
 use App\Guide\EventCatalog;
 use App\Http\Resources\SportResource;
-use App\Http\Resources\Web\ChannelCard;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -50,10 +48,6 @@ class HandleInertiaRequests extends Middleware
             // Виды спорта — в боковой панели.
             'sports' => fn () => $request->user()
                 ? SportResource::collection(app(EventCatalog::class)->sports())->resolve()
-                : [],
-            // Каналы с матчами — в боковой панели (красная точка — матч идёт).
-            'sidebarChannels' => fn () => $request->user()
-                ? ChannelCard::collection(app(Channels::class)->withMatches())->resolve()
                 : [],
         ];
     }

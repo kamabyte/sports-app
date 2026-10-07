@@ -1,0 +1,206 @@
+{
+ "leagues": [
+  {
+   "id": "3321",
+   "name": "Ultimate Fighting Championship",
+   "abbreviation": "UFC",
+   "logos": [
+    {
+     "href": "https://a.espncdn.com/i/teamlogos/leagues/500/ufc.png",
+     "width": 500,
+     "height": 500,
+     "alt": "",
+     "rel": [
+      "full",
+      "default"
+     ],
+     "lastUpdated": "2018-12-21T18:30Z"
+    },
+    {
+     "href": "https://a.espncdn.com/i/teamlogos/leagues/500/ufc.png",
+     "width": 500,
+     "height": 500,
+     "alt": "",
+     "rel": [
+      "full",
+      "dark"
+     ],
+     "lastUpdated": "2018-12-21T18:30Z"
+    }
+   ]
+  }
+ ],
+ "events": [
+  {
+   "id": "600061267",
+   "name": "UFC 333: Volkanovski vs. Evloev",
+   "shortName": "UFC 333",
+   "date": "2026-10-24T14:00Z",
+   "status": {
+    "type": {
+     "name": "STATUS_SCHEDULED",
+     "state": "pre",
+     "completed": false
+    }
+   },
+   "competitions": [
+    {
+     "id": "401928047",
+     "date": "2026-10-24T14:00Z",
+     "startDate": "2026-10-24T14:00Z",
+     "status": {
+      "type": {
+       "name": "STATUS_SCHEDULED",
+       "state": "pre",
+       "completed": false
+      }
+     },
+     "type": {
+      "id": "970",
+      "abbreviation": "Bantamweight"
+     },
+     "competitors": [
+      {
+       "id": "5264462",
+       "type": "athlete",
+       "order": 1,
+       "winner": false,
+       "athlete": {
+        "displayName": "Colby Thicknesse",
+        "shortName": "C. Thicknesse",
+        "flag": {
+         "href": "https://a.espncdn.com/i/teamlogos/countries/500/aus.png",
+         "alt": "Australia",
+         "rel": [
+          "country-flag"
+         ]
+        }
+       }
+      },
+      {
+       "id": "5454811",
+       "type": "athlete",
+       "order": 2,
+       "winner": false,
+       "athlete": {
+        "displayName": "Asaf Chopurov",
+        "shortName": "A. Chopurov",
+        "flag": {
+         "href": "https://a.espncdn.com/i/teamlogos/countries/500/rus.png",
+         "alt": "Russia",
+         "rel": [
+          "country-flag"
+         ]
+        }
+       }
+      }
+     ]
+    },
+    {
+     "id": "401911633",
+     "date": "2026-10-24T18:00Z",
+     "startDate": "2026-10-24T18:00Z",
+     "status": {
+      "type": {
+       "name": "STATUS_SCHEDULED",
+       "state": "pre",
+       "completed": false
+      }
+     },
+     "type": {
+      "id": "970",
+      "abbreviation": "Bantamweight"
+     },
+     "competitors": [
+      {
+       "id": "3948572",
+       "type": "athlete",
+       "order": 2,
+       "winner": false,
+       "athlete": {
+        "displayName": "Merab Dvalishvili",
+        "shortName": "M. Dvalishvili",
+        "flag": {
+         "href": "https://a.espncdn.com/i/teamlogos/countries/500/geo.png",
+         "alt": "Georgia",
+         "rel": [
+          "country-flag"
+         ]
+        }
+       }
+      },
+      {
+       "id": "4293517",
+       "type": "athlete",
+       "order": 1,
+       "winner": false,
+       "athlete": {
+        "displayName": "Petr Yan",
+        "shortName": "P. Yan",
+        "flag": {
+         "href": "https://a.espncdn.com/i/teamlogos/countries/500/rus.png",
+         "alt": "Russia",
+         "rel": [
+          "country-flag"
+         ]
+        }
+       }
+      }
+     ]
+    },
+    {
+     "id": "401911632",
+     "date": "2026-10-24T18:00Z",
+     "startDate": "2026-10-24T18:00Z",
+     "status": {
+      "type": {
+       "name": "STATUS_SCHEDULED",
+       "state": "pre",
+       "completed": false
+      }
+     },
+     "type": {
+      "id": "999",
+      "abbreviation": "Featherweight"
+     },
+     "competitors": [
+      {
+       "id": "3949584",
+       "type": "athlete",
+       "order": 1,
+       "winner": false,
+       "athlete": {
+        "displayName": "Alexander Volkanovski",
+        "shortName": "A. Volkanovski",
+        "flag": {
+         "href": "https://a.espncdn.com/i/teamlogos/countries/500/aus.png",
+         "alt": "Australia",
+         "rel": [
+          "country-flag"
+         ]
+        }
+       }
+      },
+      {
+       "id": "4029275",
+       "type": "athlete",
+       "order": 2,
+       "winner": false,
+       "athlete": {
+        "displayName": "Movsar Evloev",
+        "shortName": "M. Evloev",
+        "flag": {
+         "href": "https://a.espncdn.com/i/teamlogos/countries/500/rus.png",
+         "alt": "Russia",
+         "rel": [
+          "country-flag"
+         ]
+        }
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

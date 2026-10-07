@@ -1,0 +1,311 @@
+{
+ "leagues": [
+  {
+   "id": "2030",
+   "name": "Formula 1",
+   "abbreviation": "F1",
+   "logos": [
+    {
+     "href": "https://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/f1.png",
+     "width": 500,
+     "height": 500,
+     "alt": "",
+     "rel": [
+      "full",
+      "default"
+     ],
+     "lastUpdated": "2026-10-06T02:33Z"
+    },
+    {
+     "href": "http://a.espncdn.com/combiner/i?img=/i/teamlogos/leagues/500/f1.png",
+     "width": 500,
+     "height": 500,
+     "alt": "",
+     "rel": [
+      "full",
+      "dark"
+     ],
+     "lastUpdated": "2026-10-05T15:44Z"
+    }
+   ]
+  }
+ ],
+ "events": [
+  {
+   "id": "600060990",
+   "name": "Gulf Air Bahrain Grand Prix in Malaysia",
+   "shortName": "Gulf Air Bahrain GP in Malaysia",
+   "date": "2026-10-02T04:30Z",
+   "endDate": "2026-10-04T07:00Z",
+   "status": {
+    "type": {
+     "name": "STATUS_FINAL",
+     "state": "post",
+     "completed": true
+    }
+   },
+   "competitions": [
+    {
+     "id": "401901646",
+     "date": "2026-10-02T04:30Z",
+     "startDate": "2026-10-02T04:30Z",
+     "status": {
+      "type": {
+       "name": "STATUS_FINAL",
+       "state": "post",
+       "completed": true
+      }
+     },
+     "type": {
+      "id": "1",
+      "abbreviation": "FP1"
+     },
+     "competitors": [
+      {
+       "id": "4665",
+       "type": "athlete",
+       "order": 1,
+       "winner": false,
+       "athlete": {
+        "displayName": "Max Verstappen",
+        "shortName": "M. Verstappen",
+        "flag": {
+         "href": "https://a.espncdn.com/i/teamlogos/countries/500/ned.png",
+         "alt": "Netherlands",
+         "rel": [
+          "country-flag"
+         ]
+        }
+       }
+      },
+      {
+       "id": "5503",
+       "type": "athlete",
+       "order": 2,
+       "winner": false,
+       "athlete": {
+        "displayName": "George Russell",
+        "shortName": "G. Russell",
+        "flag": {
+         "href": "https://a.espncdn.com/i/teamlogos/countries/500/gbr.png",
+         "alt": "Britain",
+         "rel": [
+          "country-flag"
+         ]
+        }
+       }
+      }
+     ]
+    },
+    {
+     "id": "401901647",
+     "date": "2026-10-02T08:00Z",
+     "startDate": "2026-10-02T08:00Z",
+     "status": {
+      "type": {
+       "name": "STATUS_FINAL",
+       "state": "post",
+       "completed": true
+      }
+     },
+     "type": {
+      "id": "1",
+      "abbreviation": "FP2"
+     },
+     "competitors": [
+      {
+       "id": "5498",
+       "type": "athlete",
+       "order": 1,
+       "winner": false,
+       "athlete": {
+        "displayName": "Charles Leclerc",
+        "shortName": "C. Leclerc",
+        "flag": {
+         "href": "https://a.espncdn.com/i/teamlogos/countries/500/mon.png",
+         "alt": "Monaco",
+         "rel": [
+          "country-flag"
+         ]
+        }
+       }
+      },
+      {
+       "id": "5790",
+       "type": "athlete",
+       "order": 2,
+       "winner": false,
+       "athlete": {
+        "displayName": "Isack Hadjar",
+        "shortName": "I. Hadjar",
+        "flag": {
+         "href": "https://a.espncdn.com/i/teamlogos/countries/500/fra.png",
+         "alt": "France",
+         "rel": [
+          "country-flag"
+         ]
+        }
+       }
+      }
+     ]
+    },
+    {
+     "id": "401901648",
+     "date": "2026-10-03T04:30Z",
+     "startDate": "2026-10-03T04:30Z",
+     "status": {
+      "type": {
+       "name": "STATUS_FINAL",
+       "state": "post",
+       "completed": true
+      }
+     },
+     "type": {
+      "id": "1",
+      "abbreviation": "FP3"
+     },
+     "competitors": [
+      {
+       "id": "5829",
+       "type": "athlete",
+       "order": 1,
+       "winner": false,
+       "athlete": {
+        "displayName": "Kimi Antonelli",
+        "shortName": "K. Antonelli",
+        "flag": {
+         "href": "https://a.espncdn.com/i/teamlogos/countries/500/ita.png",
+         "alt": "Italy",
+         "rel": [
+          "country-flag"
+         ]
+        }
+       }
+      },
+      {
+       "id": "4665",
+       "type": "athlete",
+       "order": 2,
+       "winner": false,
+       "athlete": {
+        "displayName": "Max Verstappen",
+        "shortName": "M. Verstappen",
+        "flag": {
+         "href": "https://a.espncdn.com/i/teamlogos/countries/500/ned.png",
+         "alt": "Netherlands",
+         "rel": [
+          "country-flag"
+         ]
+        }
+       }
+      }
+     ]
+    },
+    {
+     "id": "401901649",
+     "date": "2026-10-03T08:00Z",
+     "startDate": "2026-10-03T08:00Z",
+     "status": {
+      "type": {
+       "name": "STATUS_FINAL",
+       "state": "post",
+       "completed": true
+      }
+     },
+     "type": {
+      "id": "2",
+      "abbreviation": "Qual"
+     },
+     "competitors": [
+      {
+       "id": "4665",
+       "type": "athlete",
+       "order": 1,
+       "winner": false,
+       "athlete": {
+        "displayName": "Max Verstappen",
+        "shortName": "M. Verstappen",
+        "flag": {
+         "href": "https://a.espncdn.com/i/teamlogos/countries/500/ned.png",
+         "alt": "Netherlands",
+         "rel": [
+          "country-flag"
+         ]
+        }
+       }
+      },
+      {
+       "id": "868",
+       "type": "athlete",
+       "order": 2,
+       "winner": false,
+       "athlete": {
+        "displayName": "Lewis Hamilton",
+        "shortName": "L. Hamilton",
+        "flag": {
+         "href": "https://a.espncdn.com/i/teamlogos/countries/500/gbr.png",
+         "alt": "Britain",
+         "rel": [
+          "country-flag"
+         ]
+        }
+       }
+      }
+     ]
+    },
+    {
+     "id": "401901650",
+     "date": "2026-10-04T07:00Z",
+     "startDate": "2026-10-04T07:00Z",
+     "status": {
+      "type": {
+       "name": "STATUS_FINAL",
+       "state": "post",
+       "completed": true
+      }
+     },
+     "type": {
+      "id": "3",
+      "abbreviation": "Race"
+     },
+     "competitors": [
+      {
+       "id": "4665",
+       "type": "athlete",
+       "order": 1,
+       "winner": true,
+       "athlete": {
+        "displayName": "Max Verstappen",
+        "shortName": "M. Verstappen",
+        "flag": {
+         "href": "https://a.espncdn.com/i/teamlogos/countries/500/ned.png",
+         "alt": "Netherlands",
+         "rel": [
+          "country-flag"
+         ]
+        }
+       }
+      },
+      {
+       "id": "5829",
+       "type": "athlete",
+       "order": 2,
+       "winner": false,
+       "athlete": {
+        "displayName": "Kimi Antonelli",
+        "shortName": "K. Antonelli",
+        "flag": {
+         "href": "https://a.espncdn.com/i/teamlogos/countries/500/ita.png",
+         "alt": "Italy",
+         "rel": [
+          "country-flag"
+         ]
+        }
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

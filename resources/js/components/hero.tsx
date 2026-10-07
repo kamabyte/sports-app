@@ -1,6 +1,6 @@
 import { CompetitionMark } from '@/components/competition-badge';
 import { Link } from '@inertiajs/react';
-import { ChevronLeft, ChevronRight, Info, Play, Tv } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { EventStatusPill } from '@/components/event-status';
 import { TeamCrest } from '@/components/team-crest';
@@ -8,13 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useNow } from '@/hooks/use-now';
 import { useTimezone } from '@/hooks/use-timezone';
 import { eventBackdrop, hasTeams } from '@/lib/event-visuals';
-import {
-    channelsSummary,
-    dateKey,
-    formatDay,
-    formatTime,
-    liveState,
-} from '@/lib/format';
+import { dateKey, formatDay, formatTime, liveState } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import type { SportEvent } from '@/types';
 
@@ -44,7 +38,6 @@ export function Hero({ events }: { events: SportEvent[] }) {
         setIndex((i) => (i + delta + events.length) % events.length);
     const current = events[index];
     const { status } = liveState(current, now);
-    const channels = channelsSummary(current.channels);
     const when =
         status === 'upcoming'
             ? `${formatDay(dateKey(current.starts_at, timezone), timezone)}, ${formatTime(current.starts_at, timezone)}`
@@ -115,32 +108,13 @@ export function Hero({ events }: { events: SportEvent[] }) {
                         ) : (
                             <EventStatusPill event={current} />
                         )}
-                        {channels && (
-                            <span className="inline-flex items-center gap-1.5">
-                                <Tv className="size-4" />
-                                {channels}
-                            </span>
-                        )}
                     </div>
 
                     <div className="mt-2 flex gap-3">
                         <Button
                             asChild
                             size="lg"
-                            className="h-11 rounded-full bg-white px-6 text-[15px] font-semibold text-black hover:bg-white/90"
-                        >
-                            <Link href={`/events/${current.id}/watch`}>
-                                <Play className="size-4 fill-current" />
-                                {status === 'live'
-                                    ? 'Смотреть'
-                                    : 'Открыть канал'}
-                            </Link>
-                        </Button>
-                        <Button
-                            asChild
-                            size="lg"
-                            variant="secondary"
-                            className="h-11 rounded-full border-0 bg-white/15 px-5 text-[15px] text-white backdrop-blur-md hover:bg-white/25"
+                            className="h-11 rounded-full border-0 bg-white px-6 text-[15px] text-black hover:bg-white/90"
                         >
                             <Link href={`/events/${current.id}`}>
                                 <Info className="size-4" />

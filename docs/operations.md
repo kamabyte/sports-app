@@ -33,9 +33,12 @@ composer dev                # server, queue, logs, scheduler, Vite
 | `FIXTURES_DAYS_BACK` / `FIXTURES_DAYS_AHEAD`                                                    | `0` / `6`                   | schedule window                                        |
 | `ESPN_ENABLED`, `KHL_ENABLED`, `EUROLEAGUE_ENABLED`, `LIVESCORE_ENABLED`, `THESPORTSDB_ENABLED` | `true`                      | toggle schedule sources                                |
 | `THESPORTSDB_KEY` / `_PAUSE_SECONDS` / `_DAYS_AHEAD`                                            | `123` / `21` / `1`          | free key limits                                        |
+| `IBU_ENABLED`                                                                                   | `true`                      | biathlon (IBU results API)                             |
+| `FLASHSCORE_ENABLED`                                                                            | **`false`**                 | Flashscore lite HTML source, owner's decision (see below) |
+| `FLASHSCORE_TIMEZONE` / `_PAUSE_SECONDS` / `_CACHE_HOURS` / `_DAYS_AHEAD`                       | `Europe/Prague` / `2` / `6` / `6` | site time zone, pause between pages, cache for pages after tomorrow, horizon (max 6) |
 
 Lists that are not env variables live in `config/sports.php`: ESPN leagues,
-LiveScore sports, TheSportsDB sports, guide sources (`guides.sources`), manual
+LiveScore sports, TheSportsDB sports, Flashscore sports (our key → site section), guide sources (`guides.sources`), manual
 channel ↔ guide links (`guides.channels`), channel languages by Dispatcharr
 category (`providers.dispatcharr.category_languages`), preferred broadcast
 languages.
@@ -71,6 +74,48 @@ guide file can be loaded at all.
 | `storage/logs/laravel.log`                           | errors (failed sources, downloads)                            |
 | `storage/app/dispatcharr-epg-backup-2026-10-06.json` | Dispatcharr channel → guide map before the 2026-10-06 changes |
 
+## Flashscore lite source
+
+`FlashscoreSource` reads the public lite pages of www.flashscore.mobi
+(`/handball/?d=N` and so on). Contract evidence is in
+`docs/flashscore-html-source-plan.md`.
+
+- **Off by default.** Flashscore's terms of use restrict scraping and
+  aggregation without consent. Technical access is not permission, and
+  personal use is not a blanket exemption. Enabling it (`FLASHSCORE_ENABLED=true`)
+  is the owner's decision.
+- **Sports:** handball, volleyball, rugby union, futsal, bandy, water polo. These
+  are gaps in the free APIs. Football, hockey and basketball are left to the API
+  sources on purpose. Motorsport, winter sports, tennis and combat are not taken
+  from here.
+- **Dates and time zone:** the site serves `d=-1…7` around its own "today", and
+  each page's heading must name the expected day. Times are Europe/Prague (CEST
+  verified on 2026-10-07; the 2026-10-25 switch to CET was not observable yet).
+  A UTC day spans two site days, so both are fetched. With `FIXTURES_DAYS_AHEAD=6`
+  the last page is `d=7`.
+- **Requests:** an honest User-Agent, `FLASHSCORE_PAUSE_SECONDS` between pages,
+  two retries on connection errors only. Today's and tomorrow's pages are always
+  fresh; later days come from the cache for `FLASHSCORE_CACHE_HOURS`. Hourly
+  that is about 2 pages per sport plus a refresh of the rest every 6 h, roughly
+  18 pages an hour for 6 sports. A 429 blocks the source until `Retry-After`
+  (or one hour), kept in the cache across runs. `/match/` pages are never
+  fetched (robots.txt).
+- **Never an empty day by mistake:** a page without `#score-data`, a challenge
+  page, a page for another day, or a list with neither rows nor `No match found.`
+  fails that page only. Other pages, sports and days still load, and the day fails
+  only when no page loaded at all. Existing fixtures stay. A page is cached
+  only after it is fully parsed, and a cached page that no longer parses is
+  evicted, so the next import asks the site again.
+- **Unknown kickoff:** a live row shows minutes (`77'`) instead of the time. The
+  source keeps the kickoff it stored earlier; a row never seen before is
+  skipped and counted.
+- **Warnings in `fixtures:import`:** `flashscore: 2026-10-07 volleyball 2026-10-08: …`
+  (one page failed: UTC day, sport, site day), `flashscore: skipped rows — handball live without a known kickoff: 1, …`
+  and the page counts (`pages: N fetched, M from cache`) are printed only when
+  something went wrong.
+- Flashscore has the lowest merge priority: when an API has the same match, the
+  API's names, time and competition win.
+
 ## Troubleshooting
 
 | Symptom                               | Check                                                                                                                                                                                                              |
@@ -81,6 +126,8 @@ guide file can be loaded at all.
 | Studio show shown as a match          | Add the word to `TitleParser::SHOWS`.                                                                                                                                                                              |
 | Player stalls                         | Keep mpegts.js settings in `live-player.tsx` (no latency chasing).                                                                                                                                                 |
 | Logos missing                         | `storage:link`, then `logos:sync`; failures retry after 24 h (`logo_failed_at`).                                                                                                                                   |
+| `flashscore: … no schedule on the page` | A challenge, an error page or a new layout. Do not work around a challenge. Check a page by hand; if the layout changed, update the parser and the fixtures in `tests/Fixtures/sources/flashscore`. |
+| `flashscore: … rate limited`          | A 429 was received; the source waits for `Retry-After`. Raise `FLASHSCORE_PAUSE_SECONDS` or `FLASHSCORE_CACHE_HOURS`. |
 | Few channels have a guide             | Most "Спорт — мир" channels have no public guide at all. New file → add to `guides.sources`.                                                                                                                       |
 
 ## Homelab Dispatcharr

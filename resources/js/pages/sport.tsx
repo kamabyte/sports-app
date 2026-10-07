@@ -80,7 +80,9 @@ export default function SportPage({
                             {sport.name}
                         </h1>
                         <p className="text-sm text-muted-foreground">
-                            {live.length > 0 ? `${live.length} в эфире · ` : ''}
+                            {live.length > 0
+                                ? `${live.length} идут сейчас · `
+                                : ''}
                             {upcoming.length} впереди на неделе
                         </p>
                     </div>
@@ -99,7 +101,7 @@ export default function SportPage({
                     <section>
                         <h2 className="mb-3 flex items-center gap-2 font-display text-xl font-semibold">
                             <span className="size-2 animate-live-pulse rounded-full bg-live" />
-                            Сейчас в эфире
+                            Матчи сейчас
                         </h2>
                         <div className="grid gap-x-4 gap-y-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                             {live.map((event) => (
@@ -132,7 +134,8 @@ export default function SportPage({
 
                 {events.length === 0 && (
                     <EmptyState icon={CalendarX2} title="Ближайших событий нет">
-                        Как только они появятся в телегиде, они будут здесь.
+                        Матчи появятся здесь после обновления спортивного
+                        каталога.
                     </EmptyState>
                 )}
             </div>

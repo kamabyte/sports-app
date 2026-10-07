@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\DeferBroadcastPages;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -39,7 +40,8 @@ it('shows the schedule of a day in the viewer time zone', function (): void {
                 && collect($events)->every(fn (array $event) => CarbonImmutable::parse($event['starts_at'])->setTimezone('Europe/Moscow')->toDateString() === '2026-10-07')));
 });
 
-it('shows an event with its broadcasts and the watch page', function (): void {
+it('preserves event data and the deferred watch page', function (): void {
+    $this->withoutMiddleware(DeferBroadcastPages::class);
     $user = User::factory()->create();
 
     $this->actingAs($user)
@@ -59,7 +61,7 @@ it('shows an event with its broadcasts and the watch page', function (): void {
 
 it('returns 404 for unknown events, broadcasts and sports', function (string $url): void {
     $this->actingAs(User::factory()->create())->get($url)->assertNotFound();
-})->with(['/events/ucl-20261006-99', '/events/ucl-20261006-2/watch/99', '/sports/curling']);
+})->with(['/events/ucl-20261006-99', '/sports/curling']);
 
 it('survives a malformed search query', function (): void {
     $this->actingAs(User::factory()->create())
@@ -77,3 +79,12 @@ it('searches events by team', function (): void {
             ->where('query', 'Зенит')
             ->has('events.0'));
 });
+
+it('redirects deferred broadcast pages to the sports schedule', function (string $url): void {
+    $this->actingAs(User::factory()->create())->get($url)->assertRedirect('/schedule');
+})->with([
+    '/channels',
+    '/events/ucl-20261006-2/watch',
+    '/events/ucl-20261006-2/watch/2',
+    '/events/ucl-20261006-2/watch/2/playlist.m3u',
+]);

@@ -1,5 +1,5 @@
 import type { Auth } from '@/types/auth';
-import type { ChannelSummary, Sport } from '@/types/sports';
+import type { Sport } from '@/types/sports';
 
 declare module 'react' {
     interface InputHTMLAttributes<T> {
@@ -15,8 +15,6 @@ declare module '@inertiajs/core' {
             /** Часовой пояс расписания (sports.timezone). */
             timezone: string;
             sports: Sport[];
-            /** Каналы с матчами — в боковой панели. */
-            sidebarChannels: ChannelSummary[];
             [key: string]: unknown;
         };
     }

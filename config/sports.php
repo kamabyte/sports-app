@@ -54,7 +54,18 @@ return [
                     'soccer/uefa.nations' => 'football',
                     'hockey/nhl' => 'hockey',
                     'basketball/nba' => 'basketball',
+                    // Теннис — одиночные матчи; UFC — турнир целиком по главному
+                    // бою; Формула-1 — каждая сессия Гран-при без соперников.
+                    'tennis/atp' => 'tennis',
+                    'tennis/wta' => 'tennis',
+                    'mma/ufc' => 'combat',
+                    'racing/f1' => 'motorsport',
                 ],
+            ],
+
+            // Биатлон: открытый API результатов IBU — Кубок мира и чемпионаты мира.
+            'ibu' => [
+                'enabled' => (bool) env('IBU_ENABLED', true),
             ],
 
             // КХЛ: мобильный API, названия по-русски.
@@ -74,6 +85,28 @@ return [
                     'football' => 'soccer',
                     'hockey' => 'hockey',
                     'basketball' => 'basketball',
+                ],
+            ],
+
+            // Flashscore lite (www.flashscore.mobi): HTML-страницы видов спорта, без
+            // входа и подписанных запросов. Условия сайта запрещают сбор данных без
+            // согласия — выключен по умолчанию, включать решает владелец. Время на
+            // сайте — по Праге; дальше завтрашнего дня страницы берутся из кэша.
+            'flashscore' => [
+                'enabled' => (bool) env('FLASHSCORE_ENABLED', false),
+                'timezone' => env('FLASHSCORE_TIMEZONE', 'Europe/Prague'),
+                'pause_seconds' => (int) env('FLASHSCORE_PAUSE_SECONDS', 2),
+                'cache_hours' => (int) env('FLASHSCORE_CACHE_HOURS', 6),
+                // Сайт отдаёт неделю вперёд (?d=7), а сутки UTC захватывают и следующий день сайта.
+                'days_ahead' => min(6, (int) env('FLASHSCORE_DAYS_AHEAD', 6)),
+                // Наш вид спорта → раздел сайта. Только то, чего мало у API выше.
+                'sports' => [
+                    'handball' => 'handball',
+                    'volleyball' => 'volleyball',
+                    'rugby' => 'rugby-union',
+                    'futsal' => 'futsal',
+                    'bandy' => 'bandy',
+                    'waterpolo' => 'water-polo',
                 ],
             ],
 

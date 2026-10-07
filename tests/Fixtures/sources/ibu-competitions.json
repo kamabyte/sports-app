@@ -1,0 +1,80 @@
+[
+ {
+  "RaceId": "BT2627SWRLCP01SMIN",
+  "catId": "SM",
+  "DisciplineId": "IN",
+  "StatusId": 1,
+  "StatusText": "Scheduled",
+  "ScheduleStatus": "SCHEDULED",
+  "ResultStatus": "NONE",
+  "IsLive": false,
+  "StartTime": "2026-11-26T15:15:00Z",
+  "Description": "Men's 20km Individual",
+  "ShortDescription": "Men's 20km Individual"
+ },
+ {
+  "RaceId": "BT2627SWRLCP01SWIN",
+  "catId": "SW",
+  "DisciplineId": "IN",
+  "StatusId": 1,
+  "StatusText": "Scheduled",
+  "ScheduleStatus": "SCHEDULED",
+  "ResultStatus": "NONE",
+  "IsLive": false,
+  "StartTime": "2026-11-27T15:15:00Z",
+  "Description": "Women's 15km Individual",
+  "ShortDescription": "Women's 15km Individual"
+ },
+ {
+  "RaceId": "BT2627SWRLCP01MXSR",
+  "catId": "MX",
+  "DisciplineId": "SR",
+  "StatusId": 1,
+  "StatusText": "Scheduled",
+  "ScheduleStatus": "SCHEDULED",
+  "ResultStatus": "NONE",
+  "IsLive": false,
+  "StartTime": "2026-11-28T12:10:00Z",
+  "Description": "Single Mixed Relay (W+M)",
+  "ShortDescription": "Single Mixed Relay (W+M)"
+ },
+ {
+  "RaceId": "BT2627SWRLCP01MXRL",
+  "catId": "MX",
+  "DisciplineId": "RL",
+  "StatusId": 1,
+  "StatusText": "Scheduled",
+  "ScheduleStatus": "SCHEDULED",
+  "ResultStatus": "NONE",
+  "IsLive": false,
+  "StartTime": "2026-11-28T14:15:00Z",
+  "Description": "Mixed Relay 4x6km (W+M)",
+  "ShortDescription": "Mixed Relay (W+M)"
+ },
+ {
+  "RaceId": "BT2627SWRLCP01SMSP",
+  "catId": "SM",
+  "DisciplineId": "SP",
+  "StatusId": 1,
+  "StatusText": "Scheduled",
+  "ScheduleStatus": "SCHEDULED",
+  "ResultStatus": "NONE",
+  "IsLive": false,
+  "StartTime": "2026-11-29T12:00:00Z",
+  "Description": "Men's 10km Sprint",
+  "ShortDescription": "Men's 10km Sprint"
+ },
+ {
+  "RaceId": "BT2627SWRLCP01SWSP",
+  "catId": "SW",
+  "DisciplineId": "SP",
+  "StatusId": 1,
+  "StatusText": "Scheduled",
+  "ScheduleStatus": "SCHEDULED",
+  "ResultStatus": "NONE",
+  "IsLive": false,
+  "StartTime": "2026-11-29T15:15:00Z",
+  "Description": "Women's 7.5km Sprint",
+  "ShortDescription": "Women's 7.5km Sprint"
+ }
+]

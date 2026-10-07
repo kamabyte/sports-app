@@ -102,7 +102,7 @@ export function Scoreboard({
                     </span>
                 )}
                 <span className="text-xs font-medium tracking-wide text-white/70 uppercase">
-                    {status === 'live' && (event.live_label ?? 'В эфире')}
+                    {status === 'live' && (event.live_label ?? 'Идёт матч')}
                     {status === 'finished' && 'Завершён'}
                     {status === 'upcoming' &&
                         `${formatDay(dateKey(event.starts_at, timezone), timezone)} · ${formatCountdown(event.starts_at, now)}`}

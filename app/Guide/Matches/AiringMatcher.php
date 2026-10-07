@@ -18,8 +18,9 @@ use Illuminate\Support\Collection;
  *
  * - С соперниками («Динамо (Минск) – СКА»): тот же вид спорта, похожие
  *   команды и время — во время матча (прямой эфир) или после (повтор).
- * - Без соперников («Чемпионат КХЛ»): матч того же турнира, который
- *   начинается в эти минуты, если он такой один.
+ * - Без соперников («Чемпионат КХЛ», «UFC 332», «Формула-1. Гран-при
+ *   Бахрейна. Гонка»): событие того же турнира, которое начинается в эти
+ *   минуты, если оно такое одно.
  */
 final class AiringMatcher
 {
@@ -133,21 +134,42 @@ final class AiringMatcher
      */
     private function bySlot(ParsedTitle $parsed, Collection $candidates, CarbonImmutable $startsAt): ?SportEvent
     {
-        // Слот без команд бывает только у командных видов: «Чемпионат КХЛ».
-        // Теннисный турнир или гонку сопоставлять не с чем.
-        if (! SportRegistry::isTeamSport($parsed->sport)) {
-            return null;
-        }
-
         $competition = $this->competitions->resolve($parsed->sport, $parsed->competition);
         if ($competition === null) {
             return null;
         }
 
+        // Слот — одно событие: матч командного вида («Чемпионат КХЛ»), турнир
+        // UFC, гонка. Теннисный турнир — много матчей сразу, ни один из них не слот.
         $inSlot = $candidates->filter(fn (SportEvent $match) => $match->competition_id === $competition->id
+            && (SportRegistry::isOneEventPerSlot($parsed->sport) || $match->home === null)
             && $match->starts_at->between($startsAt->subMinutes(self::SLOT_EARLY_MINUTES), $startsAt->addMinutes(self::SLOT_LATE_MINUTES)));
 
-        return $inSlot->count() === 1 ? $inSlot->first() : null;
+        if ($inSlot->count() !== 1) {
+            return null;
+        }
+
+        $match = $inSlot->first();
+        $this->learnTitle($match, $parsed);
+
+        return $match;
+    }
+
+    /**
+     * Гонка с латинским названием из источника получает русское из телегида:
+     * «Gulf Air Bahrain Grand Prix» → «Гран-при Бахрейна».
+     */
+    private function learnTitle(SportEvent $match, ParsedTitle $parsed): void
+    {
+        if ($match->home !== null || $parsed->title === $parsed->competition
+            || preg_match('/\p{Cyrillic}/u', $match->title) || ! preg_match('/\p{Cyrillic}/u', $parsed->title)) {
+            return;
+        }
+
+        $match->update([
+            'title' => $parsed->title,
+            'search' => trim($match->search.' | '.mb_strtolower($parsed->title), ' |'),
+        ]);
     }
 
     /**

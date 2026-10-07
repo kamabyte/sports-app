@@ -41,13 +41,17 @@ final class CompetitionRank
             ['/еврокубок/u', 5, 'EU'],
         ],
         'motorsport' => [
-            ['/формула[- ]1|forma-1/u', 9, null],
+            ['/формула[- ]1|forma-1|formula (1|one)|(^|\s)f1/u', 9, null],
         ],
         'combat' => [
             ['/ufc/u', 8, 'US'],
         ],
         'tennis' => [
-            ['/atp|wta/u', 6, null],
+            ['/atp|атр|wta/u', 6, null],
+        ],
+        'biathlon' => [
+            ['/чемпионат мира/u', 8, null],
+            ['/кубок мира/u', 7, null],
         ],
     ];
 

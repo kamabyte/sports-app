@@ -5,7 +5,7 @@ import { TeamCrest } from '@/components/team-crest';
 import { useNow } from '@/hooks/use-now';
 import { useTimezone } from '@/hooks/use-timezone';
 import { eventBackdrop, hasTeams } from '@/lib/event-visuals';
-import { channelsSummary, formatTime, liveState } from '@/lib/format';
+import { formatTime, liveState } from '@/lib/format';
 import type { SportEvent } from '@/types';
 
 /** Карточка события на полке — как постер в Apple TV, только из цветов команд. */
@@ -13,7 +13,6 @@ export function EventCard({ event }: { event: SportEvent }) {
     const now = useNow();
     const timezone = useTimezone();
     const { status, progress } = liveState(event, now);
-    const channels = channelsSummary(event.channels);
 
     return (
         <Link
@@ -78,9 +77,7 @@ export function EventCard({ event }: { event: SportEvent }) {
                     {event.title}
                 </div>
                 <div className="mt-0.5 truncate text-[13px] text-muted-foreground">
-                    {[event.round ?? event.competition.name, channels]
-                        .filter(Boolean)
-                        .join(' · ')}
+                    {event.round ?? event.competition.name}
                 </div>
             </div>
         </Link>

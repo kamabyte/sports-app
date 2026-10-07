@@ -1,21 +1,15 @@
 import { Link } from '@inertiajs/react';
-import { ChevronRight, Tv } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { LiveDot } from '@/components/live-badge';
 import { TeamCrest } from '@/components/team-crest';
 import { useNow } from '@/hooks/use-now';
 import { useTimezone } from '@/hooks/use-timezone';
 import { hasTeams } from '@/lib/event-visuals';
-import {
-    channelsSummary,
-    dateKey,
-    formatDay,
-    formatTime,
-    liveState,
-} from '@/lib/format';
+import { dateKey, formatDay, formatTime, liveState } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import type { SportEvent } from '@/types';
 
-/** Строка телегида: время, соперники, турнир, каналы. */
+/** Строка матча: время, соперники и турнир. */
 export function EventRow({
     event,
     showDate = false,
@@ -29,7 +23,6 @@ export function EventRow({
     const timezone = useTimezone();
     const { status, progress } = liveState(event, now);
     const live = status === 'live';
-    const channels = channelsSummary(event.channels);
 
     return (
         <Link
@@ -99,11 +92,6 @@ export function EventRow({
                             .filter(Boolean)
                             .join(' · ')}
                     </span>
-                    {channels && (
-                        <span className="hidden shrink-0 items-center gap-1 md:inline-flex">
-                            · <Tv className="size-3.5" /> {channels}
-                        </span>
-                    )}
                 </div>
             </div>
 

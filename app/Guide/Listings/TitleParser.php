@@ -36,7 +36,7 @@ final class TitleParser
     private const string IGNORED = '/(?<!\p{L})(college football|american football|fútbol americano|football américain|nfl|ncaa|cfl|onefa|cricket|крикет|baseball|бейсбол|béisbol|beisbol|mlb)(?!\p{L})/iu';
 
     /** Передачи о спорте, а не трансляции. */
-    private const string SHOWS = '/(?<!\p{L})(обзор|превью|шоу|реакция|выпуск|яркие матчи|лучшие моменты|анонс|журнал|студия|новости|классика|иконы|итоги|подкаст|реалити|наши чемпионы|магия|спорт\.док|ностальжи|величайш|все или ничего|тактика|видео дня|перед матчем|после матча|ток-шоу|эксклюзив|тревел|подробно|трансферы|гала-концерт|лучшие|легенды|неделя|история|документальн|уточняется|felvezető|értékelő|összefoglaló|magazin|magazín|highlights|sestřih|zprávy|hírek|noticias|resumen|rewind|epic moments|best of|all access|documentary|dokument|tonight|pregame|postgame|pre-game|post-game|countdown|recap)/iu';
+    private const string SHOWS = '/(?<!\p{L})(обзор|превью|шоу|реакция|выпуск|яркие матчи|лучшие моменты|анонс|журнал|студия|новости|классика|иконы|итоги|подкаст|реалити|наши чемпионы|магия|спорт\.док|ностальжи|величайш|все или ничего|тактика|видео дня|перед матчем|после матча|ток-шоу|эксклюзив|тревел|подробно|трансферы|гала-концерт|лучшие|легенды|неделя|история|документальн|уточняется|felvezető|értékelő|összefoglaló|magazin|magazín|highlights|sestřih|zprávy|hírek|noticias|resumen|rewind|epic moments|best of|all access|documentary|dokument|tonight|pregame|postgame|pre-game|post-game|countdown|recap|press conference|paddock|pit walk)/iu';
 
     /** Сегменты без смысла: качество, «премьера», «сегодня». */
     private const array FILLERS = ['hd', 'sd', 'uhd', 'fhd', '4k', 'premier', 'premiera', 'premiéra', 'mai', 'dnes'];
@@ -44,7 +44,7 @@ final class TitleParser
     /** Сегменты, которые ничего не говорят о событии. */
     private const string NOISE = '/^(трансляция|из\s|сезон\s|в перерыв|спорт-центр|овертайм)/iu';
 
-    private const string ROUND = '/^(\d+(-й|-го)?\s*(тур|этап|круг|раунд)|(тур|этап|етап|круг)\s*\d+.*|\d+\/\d+\s*финала.*|финал(ы| четырёх| четырех)?|döntők|döntő|полуфинал|четвертьфинал|отбор|квалификация|гонка(\s*\d+)?|практика(\s*\d+)?|спринт|матч\s*\d+|main card|основной кард|предварительный кард|групповой этап.*|общий этап.*|плей-офф.*|.*\sраунд|командные соревнования.*|základní (část|skupina)|ligová fáze|přátelské utkání|skupina \p{L}|\d+\.\s*kolo|kolo \d+|(osmi|čtvrt|semi)?finále|csoportkör|rájátszás.*|\S*elődöntő|negyeddöntő|\d+\.\s*forduló|felkészülési mérkőzés|etapa \S+|et\d+|fecha \d+|jornada \d+|temporada regular.*|matchday.*|week \d+|game \d+|regular season|play-?offs?|(semi-?|quarter-?)?finals?|group stage.*|\d+e journée|journée \d+|giornata \d+|\d+\. spieltag|[sq]f g\d+)$/iu';
+    private const string ROUND = '/^(\d+(-й|-го)?\s*(тур|этап|круг|раунд)|(тур|этап|етап|круг)\s*\d+.*|\d+\/\d+\s*финала.*|финал(ы| четырёх| четырех)?|döntők|döntő|полуфинал|четвертьфинал|отбор|квалификация|гонка(\s*\d+)?|практика(\s*\d+)?|\d-я практика|свободная практика(\s*\d+)?|спринт|спринт-квалификация|матч\s*\d+|main card|основной кард|предварительный кард|групповой этап.*|общий этап.*|плей-офф.*|.*\sраунд|командные соревнования.*|základní (část|skupina)|ligová fáze|přátelské utkání|skupina \p{L}|\d+\.\s*kolo|kolo \d+|(osmi|čtvrt|semi)?finále|csoportkör|rájátszás.*|\S*elődöntő|negyeddöntő|\d+\.\s*forduló|felkészülési mérkőzés|etapa \S+|et\d+|fecha \d+|jornada \d+|temporada regular.*|matchday.*|week \d+|game \d+|regular season|play-?offs?|(semi-?|quarter-?)?finals?|group stage.*|\d+e journée|journée \d+|giornata \d+|\d+\. spieltag|[sq]f g\d+)$/iu';
 
     /** Стадия, приклеенная к хозяевам: «základní část Bílí Tygři Liberec - Frölunda». */
     private const string LEADING_ROUND = '/^((základní (část|skupina)|ligová fáze|přátelské utkání|play-?off|dnešní|(osmi|čtvrt|semi)?finále|skupina \p{Lu})\s+)+/iu';
@@ -70,7 +70,7 @@ final class TitleParser
 
     private const int MAX_TEAM_LENGTH = 50;
 
-    private const array NO_TEAMS = ['motorsport', 'cycling', 'winter'];
+    private const array NO_TEAMS = ['motorsport', 'cycling', 'winter', 'biathlon'];
 
     /**
      * @param  string|null  $sportHint  вид спорта канала (SportRegistry::hint) — если в названии его нет

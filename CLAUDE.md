@@ -21,7 +21,10 @@ troubleshooting, homelab). `README.md` is the Russian overview.
   stream / channel-detail API — never in event lists or resources for lists.
 - **Homelab Dispatcharr changes** must be additive and reversible, backed up
   first; never print the admin JWT; never change admin passwords.
-- **No anti-bot circumvention** (Championat, Flashscore are off-limits).
+- **No anti-bot circumvention.** Championat and the Flashscore desktop feed are
+  off-limits. The Flashscore lite HTML source is allowed only as plain public
+  pages: a challenge fails the day, and the source stays disabled by default
+  (site terms; enabling it is the owner's call).
 - Commit or push only when the user asks.
 
 ## Conventions

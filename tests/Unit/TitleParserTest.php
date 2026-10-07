@@ -1,5 +1,6 @@
 <?php
 
+use App\Guide\Competitions\CompetitionCatalog;
 use App\Guide\Listings\TitleParser;
 use App\Guide\TeamCategory;
 use Carbon\CarbonImmutable;
@@ -32,6 +33,12 @@ it('parses match titles of different channels', function (string $title, array $
     'race session is not a matchup' => ['Forma-1: Szingapúri nagydíj - Futam.', ['sport' => 'motorsport', 'home' => null, 'title' => 'Szingapúri nagydíj', 'round' => 'Futam']],
     'old match date' => ['Футзал. Суперлига. Норильск – Синара. 6 тур. Матч 1 (03.10.2026)', ['sport' => 'futsal', 'replay' => true, 'round' => '6 тур · Матч 1']],
     'part of a recording' => ['Греция – Германия. Футбол. Лига наций. 1–3 c', ['home' => 'Греция', 'replay' => true]],
+    'sprint qualifying is a session' => ['⋗ Автоспорт. Формула-1. Этап 17. Гран-при Сингапура. Спринт-квалификация', ['title' => 'Гран-при Сингапура', 'round' => 'Этап 17 · Спринт-квалификация']],
+    'formula 1 with a slash' => ['Формула 1: Гран-при Бахрейна / Гонка', ['sport' => 'motorsport', 'title' => 'Гран-при Бахрейна', 'competition' => 'Формула 1', 'round' => 'Гонка']],
+    'tennis tournament as sport' => ['ATP 1000, Монреаль 1/32: Карен Хачанов – Теренс Атман', ['sport' => 'tennis', 'home' => 'Карен Хачанов', 'away' => 'Теренс Атман', 'competition' => 'ATP 1000']],
+    'tennis slot without players' => ['Теннис. АТР. Шанхай', ['sport' => 'tennis', 'home' => null, 'competition' => 'АТР']],
+    'biathlon race' => ['Биатлон. Кубок мира. Спринт. Мужчины', ['sport' => 'biathlon', 'home' => null, 'competition' => 'Кубок мира · Мужчины', 'round' => 'Спринт']],
+    'biathlon relay' => ['Биатлон. Кубок мира. Смешанная эстафета', ['sport' => 'biathlon', 'title' => 'Смешанная эстафета', 'competition' => 'Кубок мира']],
 ]);
 
 it('skips shows, studios and bare sports', function (string $title): void {
@@ -66,6 +73,11 @@ it('parses foreign guides', function (string $title, array $expected): void {
     'american "at": home team second' => ['WNBA Basketball. Atlanta Dream at Washington Mystics', ['sport' => 'basketball', 'home' => 'Washington Mystics', 'away' => 'Atlanta Dream']],
     'league with sport' => ['NWSL Soccer. Angel City FC at Racing Louisville FC', ['sport' => 'football', 'home' => 'Racing Louisville FC']],
     'spanish with country codes' => ['Euroleague. Anadolu Efes (Tur) vs. Real Madrid (Esp), Fecha 2, Basketbol', ['sport' => 'basketball', 'home' => 'Anadolu Efes', 'away' => 'Real Madrid', 'round' => 'Fecha 2']],
+    'german F1 session' => ['F1: Qualifying - GP Bahrain. &quot;GP Bahrain: Qualifying&quot;.', ['sport' => 'motorsport', 'home' => null, 'competition' => 'F1']],
+    'english F1 session' => ['Formula 1. Singapore Grand Prix: Sprint Qualifying.', ['sport' => 'motorsport', 'title' => 'Singapore Grand Prix. Sprint Qualifying', 'competition' => 'Formula 1']],
+    'lithuanian tennis' => ['Tenisas. ATP Challenger 125. Sen Tropezas. Edas Butvilas - Grigor Dimitrov', ['sport' => 'tennis', 'home' => 'Edas Butvilas', 'away' => 'Grigor Dimitrov']],
+    'english UFC card' => ['UFC Fight Night: Allen vs. Duncan', ['sport' => 'combat', 'home' => 'Allen', 'away' => 'Duncan', 'competition' => 'UFC Fight Night']],
+    'english biathlon' => ['Biathlon. World Cup. Men\'s Sprint', ['sport' => 'biathlon', 'home' => null, 'competition' => 'World Cup']],
     'spanish league name' => ['Fútbol Colombiano Primera División. Independiente Medellín vs. Independiente Santa Fe', ['sport' => 'football', 'home' => 'Independiente Medellín']],
     'sport from the league in the description' => ['Atlético La Paz vs. Venados. Jornada 11 del Torneo Apertura 2026 de la Liga Expansión MX', ['sport' => 'football', 'home' => 'Atlético La Paz', 'away' => 'Venados']],
     'english round after the teams' => ['Major Arena Soccer League. Baltimore v Milwaukee - SF G1', ['home' => 'Baltimore', 'away' => 'Milwaukee', 'round' => 'SF G1']],
@@ -87,4 +99,12 @@ it('skips foreign shows and sports we do not cover', function (string $title): v
     'Labdarúgás. Bajnokok Ligája-magazin.',
     'UFC Epic Moments. Jones vs Gustafsson',
     'Live: NHL Tonight',
+    'F1 Drivers&apos; Press Conference',
+    'F1 Paddock Live Pit Walk',
 ]);
+
+it('does not take F1 H2O powerboats for Formula 1', function (): void {
+    $parsed = (new TitleParser)->parse('F1 H2O: Grand Prix Chin');
+
+    expect(CompetitionCatalog::match((string) $parsed?->sport, $parsed?->competition))->toBeNull();
+});
