@@ -5,6 +5,20 @@ matches from sports APIs, broadcasts attached from our own XMLTV guides,
 streams played in the browser. Laravel 13 + Inertia 3 + React 19 + TS,
 Tailwind 4, shadcn/ui, Fortify, Sanctum, SQLite.
 
+**Current direction (8 Oct 2026): a fixtures catalog, like a ticket site.**
+Flashscore-like structure (sport → country → competition → fixtures → event,
+teams, national teams, players, logos) but **only upcoming events**: no
+results, scores, standings, brackets or history. Events are the future slots
+for IPTV. Result tables from the first iteration stay in the DB, unused.
+
+**Standalone sports catalog.**
+`docs/sports-catalog-reorganization-plan.md` is authoritative; coverage and
+verified Flashscore fields are in `docs/flashscore-catalog-coverage.md`.
+`SPORTS_MODE=standalone` (default) serves the catalog (`app/Sports`, tables
+`catalog_*`, pages `resources/js/pages/catalog`); `SPORTS_MODE=iptv` restores
+the legacy IPTV app unchanged. IPTV stays off until the owner approves the
+sports UX/UI **and** separately authorizes IPTV work.
+
 Read first: `docs/architecture.md` (pipeline, matching rules, where to change
 what), `docs/api.md` (TV-client API), `docs/operations.md` (commands, config,
 troubleshooting, homelab). `README.md` is the Russian overview.
@@ -21,8 +35,13 @@ troubleshooting, homelab). `README.md` is the Russian overview.
   stream / channel-detail API — never in event lists or resources for lists.
 - **Homelab Dispatcharr changes** must be additive and reversible, backed up
   first; never print the admin JWT; never change admin passwords.
-- **No anti-bot circumvention.** Championat and the Flashscore desktop feed are
-  off-limits. The Flashscore lite HTML source is allowed only as plain public
+- **Catalog identity.** Provider ids before names, namespaced and
+  case-sensitive (`catalog_*_sources`); never merge by name, never invent ids,
+  translations, countries or scores. Tennis pairs/relays are `entries` of
+  athletes, never teams. Unknown stays unknown (time, opponent, status code).
+- **No anti-bot circumvention.** Championat and the signed Flashscore feed
+  (`/x/feed/`) are off-limits. The catalog reads data embedded in ordinary
+  public competition/team pages only (`PageFetcher` allowlist). The Flashscore lite HTML source is allowed only as plain public
   pages: a challenge fails the day, and the source stays disabled by default
   (site terms; enabling it is the owner's call).
 - Commit or push only when the user asks.
@@ -41,11 +60,13 @@ troubleshooting, homelab). `README.md` is the Russian overview.
 ## Commands
 
 ```bash
-php artisan test --compact                 # 215 tests, no network
+php artisan test --compact                 # 300+ tests, no network
 vendor/bin/phpstan analyse --memory-limit=1G
 vendor/bin/pint                            # no git --dirty needed
 npm run check && npm run types:check
-php artisan guide:import | fixtures:import | logos:sync
+php artisan catalog:discover               # page registry from the Flashscore sitemap
+php artisan catalog:import [--sport=tennis] [--dry-run]   # planned run without options (needs FLASHSCORE_ENABLED)
+php artisan guide:import | fixtures:import | logos:sync   # legacy, no-ops in standalone
 ```
 
 Screenshots: `php artisan serve --port=8123` + Playwright with installed

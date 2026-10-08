@@ -1,4 +1,5 @@
 import type { Auth } from '@/types/auth';
+import type { CatalogShared } from '@/types/catalog';
 import type { Sport } from '@/types/sports';
 
 declare module 'react' {
@@ -15,6 +16,8 @@ declare module '@inertiajs/core' {
             /** Часовой пояс расписания (sports.timezone). */
             timezone: string;
             sports: Sport[];
+            /** Спортивный каталог: меню видов спорта, демо, свежесть. */
+            catalog: CatalogShared | null;
             [key: string]: unknown;
         };
     }

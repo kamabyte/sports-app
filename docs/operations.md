@@ -159,3 +159,25 @@ npm run check && npm run types:check     # vp check (lint/format), tsc
 CI (`.github/workflows/tests.yml`) runs `composer ci:check` on PHP 8.4.
 Tests never hit the network: `fakeDispatcharr()` / `fakeGuide()` in
 `tests/Helpers.php`, local disk faked per test.
+
+## Standalone sports catalog (October 2026)
+
+- `SPORTS_MODE=standalone` (default): `/`, `/schedule`, `/search` and
+  `/sport/…`, `/team/…`, `/player/…`, `/event/…` come from the `catalog_*`
+  tables and show upcoming events only (no results or history). `guide:import`, `fixtures:import` and `logos:sync` exit without any
+  request and are not scheduled; the scheduler runs only `catalog:import`
+  (hourly at :05, and only with `FLASHSCORE_ENABLED=true`).
+  `SPORTS_MODE=iptv` brings the previous app back unchanged.
+- `php artisan catalog:import` — pages listed in
+  `sports.catalog.flashscore.competitions` / `.teams`; `--sport=`, `--page=`,
+  `--dry-run` (rolls back), `--no-translations`, `--force` (one run while the
+  flag is off). Runs, page observations and per-competition coverage are in
+  `catalog_import_runs`, `catalog_observations`, `catalog_coverage`.
+- `php artisan catalog:discover` — page registry from the public sitemap
+  (weekly, Monday 04:30). Without `--sport`/`--page`, `catalog:import` is a
+  *planned* run: day lists (today, tomorrow) + up to `FLASHSCORE_PAGES_PER_RUN`
+  competition pages; `FLASHSCORE_LITE_ENABLED=false` turns the day lists off.
+- Rollback: `SPORTS_MODE=iptv` (no data changes needed); the catalog
+  migrations are additive (`migrate:rollback --step=6` drops only `catalog_*`).
+  Pre-catalog backup: `database/backups/database-2026-10-07-before-catalog.sqlite`.
+

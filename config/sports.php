@@ -3,6 +3,151 @@
 return [
 
     /*
+     * Режим приложения. standalone — самостоятельный спортивный каталог
+     * (docs/sports-catalog-reorganization-plan.md): данные только из Flashscore,
+     * каналы, телегиды, Dispatcharr и старые источники расписания выключены и
+     * ничего не запрашивают. iptv — прежнее приложение «матчи с трансляциями»;
+     * возвращать его — отдельное решение владельца.
+     */
+    'mode' => env('SPORTS_MODE', 'standalone'),
+
+    /*
+     * Каталог видов спорта (таблицы catalog_*).
+     */
+    'catalog' => [
+        // Язык названий в интерфейсе; нет перевода — показывается название источника.
+        'locale' => 'ru',
+        // Данные старше этого считаются устаревшими: интерфейс так и пишет.
+        'stale_hours' => (int) env('SPORTS_CATALOG_STALE_HOURS', 6),
+
+        // Виды спорта: ключ → название, семейство (модель события и страница
+        // матча), волна охвата и раздел Flashscore. Порядок — порядок в меню.
+        'sports' => [
+            'football' => ['name' => 'Футбол', 'family' => 'team', 'wave' => 'A', 'flashscore' => 'football'],
+            'tennis' => ['name' => 'Теннис', 'family' => 'racket', 'wave' => 'A', 'flashscore' => 'tennis'],
+            'basketball' => ['name' => 'Баскетбол', 'family' => 'team', 'wave' => 'A', 'flashscore' => 'basketball'],
+            'hockey' => ['name' => 'Хоккей', 'family' => 'team', 'wave' => 'A', 'flashscore' => 'hockey'],
+            'volleyball' => ['name' => 'Волейбол', 'family' => 'team', 'wave' => 'B', 'flashscore' => 'volleyball'],
+            'handball' => ['name' => 'Гандбол', 'family' => 'team', 'wave' => 'B', 'flashscore' => 'handball'],
+            'baseball' => ['name' => 'Бейсбол', 'family' => 'team', 'wave' => 'B', 'flashscore' => 'baseball'],
+            'american-football' => ['name' => 'Американский футбол', 'family' => 'team', 'wave' => 'B', 'flashscore' => 'american-football'],
+            'rugby-union' => ['name' => 'Регби', 'family' => 'team', 'wave' => 'B', 'flashscore' => 'rugby-union'],
+            'rugby-league' => ['name' => 'Регбилиг', 'family' => 'team', 'wave' => 'B', 'flashscore' => 'rugby-league'],
+            'cricket' => ['name' => 'Крикет', 'family' => 'cricket', 'wave' => 'B', 'flashscore' => 'cricket'],
+            'table-tennis' => ['name' => 'Настольный теннис', 'family' => 'racket', 'wave' => 'B', 'flashscore' => 'table-tennis'],
+            'badminton' => ['name' => 'Бадминтон', 'family' => 'racket', 'wave' => 'B', 'flashscore' => 'badminton'],
+            'snooker' => ['name' => 'Снукер', 'family' => 'duel', 'wave' => 'B', 'flashscore' => 'snooker'],
+            'darts' => ['name' => 'Дартс', 'family' => 'duel', 'wave' => 'B', 'flashscore' => 'darts'],
+            'boxing' => ['name' => 'Бокс', 'family' => 'bout', 'wave' => 'B', 'flashscore' => 'boxing'],
+            'mma' => ['name' => 'ММА', 'family' => 'bout', 'wave' => 'B', 'flashscore' => 'mma'],
+            'esports' => ['name' => 'Киберспорт', 'family' => 'team', 'wave' => 'B', 'flashscore' => 'esports'],
+            // Несколько разделов Flashscore на один наш вид спорта: ключ раздела — путь => название группы.
+            'motorsport' => ['name' => 'Автоспорт', 'family' => 'race', 'wave' => 'C', 'flashscore' => ['auto-racing' => 'Автогонки', 'moto-racing' => 'Мотогонки']],
+            'golf' => ['name' => 'Гольф', 'family' => 'golf', 'wave' => 'C', 'flashscore' => 'golf'],
+            'cycling' => ['name' => 'Велоспорт', 'family' => 'race', 'wave' => 'C', 'flashscore' => 'cycling'],
+            'winter-sports' => ['name' => 'Зимние виды', 'family' => 'race', 'wave' => 'C', 'flashscore' => ['biathlon' => 'Биатлон', 'alpine-skiing' => 'Горные лыжи', 'cross-country-skiing' => 'Лыжные гонки', 'ski-jumping' => 'Прыжки с трамплина']],
+        ],
+
+        /*
+         * Flashscore: публичные страницы турниров и команд www.flashscore.com
+         * (английские названия) и www.flashscorekz.com (русские). Данные
+         * читаются из самой страницы как текст — без подписанных запросов,
+         * без выполнения скриптов и без обхода проверок. Условия сайта
+         * ограничивают сбор данных: включать регулярный импорт решает владелец.
+         */
+        'flashscore' => [
+            'enabled' => (bool) env('FLASHSCORE_ENABLED', false),
+            'hosts' => [
+                'en' => 'https://www.flashscore.com',
+                'ru' => 'https://www.flashscorekz.com',
+            ],
+            'pause_seconds' => (float) env('FLASHSCORE_PAUSE_SECONDS', 3),
+            'cache_hours' => (int) env('FLASHSCORE_CACHE_HOURS', 3),
+            'timeout_seconds' => 20,
+            // Плановый запуск (catalog:import без --sport/--page): сколько страниц турниров за раз
+            // (каждая — 1–2 запроса), как часто обновлять русские названия.
+            'pages_per_run' => (int) env('FLASHSCORE_PAGES_PER_RUN', 15),
+            'translate_days' => 7,
+            // Дневные списки лёгкой версии (www.flashscore.mobi): расписание на неделю вперёд
+            // (сайт отдаёт до 7 дней). Сегодня и завтра — раз в час, дальние дни — раз в 12 часов.
+            'lite' => [
+                'enabled' => (bool) env('FLASHSCORE_LITE_ENABLED', true),
+                'days' => [0, 1, 2, 3, 4, 5, 6, 7],
+                'cache_minutes' => 60,
+            ],
+            // Страницы турниров, которые загружает catalog:import (волна A, ограниченный набор).
+            'competitions' => [
+                'football' => [
+                    '/football/england/premier-league/',
+                    '/football/russia/premier-league/',
+                    '/football/europe/champions-league/',
+                    '/football/europe/uefa-nations-league/',
+                ],
+                'basketball' => ['/basketball/usa/nba/', '/basketball/europe/euroleague/'],
+                'hockey' => ['/hockey/usa/nhl/', '/hockey/russia/khl/'],
+                'tennis' => [
+                    '/tennis/atp-singles/shanghai/',
+                    '/tennis/atp-doubles/shanghai/',
+                    '/tennis/wta-singles/beijing/',
+                    '/tennis/wta-doubles/beijing/',
+                ],
+                // Волна B.
+                'volleyball' => ['/volleyball/italy/superlega/', '/volleyball/russia/superleague/', '/volleyball/europe/european-championships/'],
+                'handball' => ['/handball/germany/bundesliga/', '/handball/europe/champions-league/'],
+                'baseball' => ['/baseball/usa/mlb/'],
+                'american-football' => ['/american-football/usa/nfl/'],
+                'rugby-union' => ['/rugby-union/france/top-14/', '/rugby-union/england/premiership-rugby/'],
+                'rugby-league' => ['/rugby-league/australia/nrl/', '/rugby-league/england/super-league/'],
+                'cricket' => ['/cricket/north-central-america/caribbean-premier-league/', '/cricket/australia/big-bash-league/'],
+                'table-tennis' => ['/table-tennis/others-men/china-smash/', '/table-tennis/others-doubles-men/china-smash/'],
+                'badminton' => ['/badminton/bwf-world-tour-men/arctic-open/', '/badminton/bwf-world-tour-women/arctic-open/'],
+                'snooker' => ['/snooker/china/shanghai-masters/'],
+                'darts' => ['/darts/world/world-grand-prix/'],
+                'boxing' => ['/boxing/heavyweight-men/wbo-title/'],
+                'mma' => ['/mma/lightweight-men/pfl/'],
+                'esports' => ['/esports/counter-strike/esl-pro-league-season-24/', '/esports/league-of-legends/world-championship/'],
+                // Волна C.
+                'motorsport' => ['/auto-racing/formula-1/azerbaijan-grand-prix/', '/auto-racing/formula-1/singapore-grand-prix/', '/moto-racing/motogp/mandalika/'],
+                'golf' => ['/golf/dp-world-tour/bmw-pga-championship/'],
+                'cycling' => ['/cycling/tours/vuelta-a-espana/', '/cycling/races/il-lombardia/'],
+                'winter-sports' => ['/biathlon/sprint-men/oestersund/', '/alpine-skiing/super-g-men/lake-louise/'],
+            ],
+            // Профили команд: матчи команды во всех турнирах. national — страница сборной.
+            'teams' => [
+                'football' => [
+                    ['path' => '/team/france/QkGeVG1n/', 'national' => true],
+                    ['path' => '/team/france/G0E4tMc9/', 'national' => true],
+                    ['path' => '/team/france/ShmZavVI/', 'national' => true],
+                ],
+            ],
+            // Турниры сборных (адреса как у источника): их участники — сборные, а не клубы.
+            'national_competitions' => [
+                '/football/europe/uefa-nations-league/',
+                '/football/europe/euro/',
+                '/football/europe/world-championship/',
+                '/football/world/world-championship/',
+                '/football/world/friendly-international/',
+                '/football/world/olympic-games/',
+                '/football/europe/euro-u21/',
+                '/football/world/world-cup-women/',
+                '/football/europe/euro-women/',
+                '/football/europe/uefa-nations-league-women/',
+                '/football/world/friendly-international-women/',
+                '/football/world/olympic-games-women/',
+            ],
+            // Номер вида спорта у Flashscore (поле SA) — только проверенные на страницах.
+            // Страница с другим номером — ошибка настройки, она не импортируется.
+            'sport_ids' => [
+                'football' => [1], 'tennis' => [2], 'hockey' => [4], 'american-football' => [5], 'baseball' => [6],
+                'handball' => [7], 'rugby-union' => [8], 'volleyball' => [12], 'cricket' => [13], 'darts' => [14],
+                'snooker' => [15], 'boxing' => [16], 'rugby-league' => [19], 'badminton' => [21], 'golf' => [23],
+                'table-tennis' => [25], 'mma' => [28], 'motorsport' => [32, 33], 'cycling' => [34], 'esports' => [36],
+                'winter-sports' => [39, 41],
+            ],
+        ],
+    ],
+
+    /*
      * Откуда берутся события: dispatcharr — матчи расписания с показами на
      * каналах Dispatcharr (guide:import, App\Guide\DatabaseEventCatalog); fake —
      * сгенерированное расписание для разработки и тестов.

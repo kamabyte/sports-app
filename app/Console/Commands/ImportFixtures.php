@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Guide\Fixtures\FixtureImporter;
+use App\Sports\CatalogDatabase;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -14,6 +15,13 @@ class ImportFixtures extends Command
 {
     public function handle(FixtureImporter $importer): int
     {
+        // Самостоятельный каталог: прежние источники и IPTV не делают ни одного запроса.
+        if (CatalogDatabase::standalone()) {
+            $this->components->warn('Disabled in standalone mode (SPORTS_MODE=standalone): the sports catalog uses catalog:import.');
+
+            return self::SUCCESS;
+        }
+
         try {
             $result = $importer->import();
         } catch (Throwable $exception) {

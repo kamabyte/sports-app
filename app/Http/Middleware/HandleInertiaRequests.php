@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use App\Guide\EventCatalog;
 use App\Http\Resources\SportResource;
+use App\Sports\Catalog\Navigation;
+use App\Sports\CatalogDatabase;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -45,10 +47,12 @@ class HandleInertiaRequests extends Middleware
             ],
             // Время показывается в часовом поясе, по которому расписание делится на дни.
             'timezone' => config('sports.timezone'),
-            // Виды спорта — в боковой панели.
-            'sports' => fn () => $request->user()
+            // Виды спорта прежнего приложения (SPORTS_MODE=iptv) — в его боковой панели.
+            'sports' => fn () => $request->user() && ! CatalogDatabase::standalone()
                 ? SportResource::collection(app(EventCatalog::class)->sports())->resolve()
                 : [],
+            // Каталог: виды спорта для меню, демо ли это, свежесть данных.
+            'catalog' => fn () => $request->user() ? Navigation::shared() : null,
         ];
     }
 }

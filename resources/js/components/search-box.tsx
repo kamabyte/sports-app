@@ -70,7 +70,7 @@ export function SearchBox({
                 value={value}
                 autoFocus={autoFocus}
                 onChange={(event) => setValue(event.target.value)}
-                placeholder="Команда, турнир или вид спорта"
+                placeholder="Команда, игрок, турнир или вид спорта"
                 aria-label="Поиск"
                 className="h-10 w-full rounded-full border border-transparent bg-black/[0.05] pr-10 pl-10 text-[15px] transition outline-none placeholder:text-muted-foreground focus:border-ring/60 focus:bg-background focus:ring-4 focus:ring-ring/15 dark:bg-white/[0.07] dark:focus:bg-white/[0.04] [&::-webkit-search-cancel-button]:hidden"
             />

@@ -25,7 +25,9 @@ use App\Guide\Listings\XmltvReader;
 use App\Guide\Matches\AiringMatcher;
 use App\Guide\Matches\MatchBuilder;
 use App\Guide\Teams\TeamRegistry;
+use App\Sports\Catalog\CatalogWriter;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -98,6 +100,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        // Названия каталога (catalog_names) ссылаются на сущности короткими именами, а не классами.
+        Relation::morphMap(CatalogWriter::MORPHS);
 
         // {event} — событие каталога (не модель); здесь, а не в routes/*.php,
         // чтобы привязка работала и с route:cache.

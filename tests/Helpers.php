@@ -6,6 +6,9 @@ use App\Guide\Teams\NationalTeams;
 use App\Guide\Teams\TeamRegistry;
 use App\Models\Fixture;
 use App\Models\SportEvent;
+use App\Sports\Flashscore\FlashscoreImporter;
+use App\Sports\Flashscore\PageFetcher;
+use App\Sports\Models\ImportRun;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Http;
@@ -162,4 +165,53 @@ function buildMatches(): void
 function matchOf(Fixture $fixture): SportEvent
 {
     return SportEvent::query()->findOrFail($fixture->fresh()->sport_event_id);
+}
+
+/*
+ * Каталог: образцы страниц Flashscore (tests/Fixtures/sources/flashscore-pages) и импорт.
+ */
+
+function catalogPageSample(string $name): string
+{
+    return file_get_contents(base_path("tests/Fixtures/sources/flashscore-pages/{$name}.html"));
+}
+
+/**
+ * Страницы для импорта и ответы на их адреса (en — flashscore.com, ru — flashscorekz.com).
+ *
+ * @param  array<string, string>  $competitions  адрес → [en-образец, ru-образец|null]
+ */
+function fakeCatalogPages(array $pages, array $teams = [], array $responses = []): void
+{
+    config([
+        'sports.catalog.flashscore.competitions' => [],
+        'sports.catalog.flashscore.teams' => [],
+        'sports.catalog.flashscore.pause_seconds' => 0,
+        'sports.catalog.flashscore.cache_hours' => 0,
+    ]);
+    foreach ($pages as $sport => $paths) {
+        config(["sports.catalog.flashscore.competitions.{$sport}" => $paths]);
+    }
+    foreach ($teams as $sport => $list) {
+        config(["sports.catalog.flashscore.teams.{$sport}" => $list]);
+    }
+
+    resetHttpFakes();
+    Http::preventStrayRequests();
+    Http::fake($responses);
+}
+
+function runCatalogImport(bool $dryRun = false, bool $translations = true): ImportRun
+{
+    $config = config('sports.catalog.flashscore');
+
+    return (new FlashscoreImporter(new PageFetcher($config['hosts'], 0, (int) $config['cache_hours'], 5)))->run(dryRun: $dryRun, translations: $translations);
+}
+
+/** Плановый запуск (без списка страниц): дневные списки и бюджет страниц. */
+function runCatalogImportPlanned(): ImportRun
+{
+    $config = config('sports.catalog.flashscore');
+
+    return (new FlashscoreImporter(new PageFetcher($config['hosts'], 0, (int) $config['cache_hours'], 5)))->run(translations: false, planned: true);
 }

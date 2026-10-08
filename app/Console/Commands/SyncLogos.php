@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Guide\Logos\LogoStore;
 use App\Models\Competition;
 use App\Models\Team;
+use App\Sports\CatalogDatabase;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -23,6 +24,13 @@ class SyncLogos extends Command
 
     public function handle(LogoStore $store): int
     {
+        // Самостоятельный каталог: прежние источники и IPTV не делают ни одного запроса.
+        if (CatalogDatabase::standalone()) {
+            $this->components->warn('Disabled in standalone mode (SPORTS_MODE=standalone): the sports catalog uses catalog:import.');
+
+            return self::SUCCESS;
+        }
+
         $stored = 0;
         $failed = 0;
 
