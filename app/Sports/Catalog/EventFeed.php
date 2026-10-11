@@ -61,8 +61,8 @@ final class EventFeed
         return Event::query()
             ->with(self::relations())
             ->withCount('entries')
-            // «По ТВ»: есть показ, который ещё не закончился (прямой эфир или повтор).
-            ->withExists(['airings as on_tv' => fn (Builder $airings) => $airings->where('ends_at', '>', CarbonImmutable::now())])
+            // «По ТВ»: впереди или идёт прямой эфир. Повторы — только на странице события.
+            ->withExists(['airings as on_tv' => fn (Builder $airings) => self::live($airings)])
             ->where('publication_state', 'published')
             ->whereNotIn('status', self::HIDDEN)
             ->where(fn (Builder $query) => $query
@@ -86,8 +86,8 @@ final class EventFeed
             ->whereDoesntHave('children')
             ->where(function (Builder $query) use ($onTv, $from, $to, $day): void {
                 if ($onTv) {
-                    $query->whereHas('airings', fn (Builder $airings) => $airings
-                        ->where('starts_at', '<', $to)->where('ends_at', '>', $from)->where('ends_at', '>', CarbonImmutable::now()));
+                    $query->whereHas('airings', fn (Builder $airings) => self::live($airings)
+                        ->where('starts_at', '<', $to)->where('ends_at', '>', $from));
 
                     return;
                 }
@@ -99,11 +99,22 @@ final class EventFeed
             ->when($category, fn (Builder $query) => $query->whereHas('competition.categories', fn (Builder $c) => $c->whereKey($category->id)))
             ->when($competition, fn (Builder $query) => $query->where('competition_id', $competition->id))
             ->when($onTv, fn (Builder $query) => $query
-                ->withMin(['airings as broadcast_starts_at' => fn (Builder $airings) => $airings
-                    ->where('starts_at', '<', $to)->where('ends_at', '>', $from)->where('ends_at', '>', CarbonImmutable::now())], 'starts_at')
+                ->withMin(['airings as broadcast_starts_at' => fn (Builder $airings) => self::live($airings)
+                    ->where('starts_at', '<', $to)->where('ends_at', '>', $from)], 'starts_at')
                 ->orderBy('broadcast_starts_at'))
             ->orderByRaw('starts_at is null, starts_at')
             ->orderBy('id');
+    }
+
+    /**
+     * Прямые эфиры, которые ещё не закончились: по ним — отметка «по ТВ» и фильтр.
+     *
+     * @param  Builder<Airing>  $airings
+     * @return Builder<Airing>
+     */
+    private static function live(Builder $airings): Builder
+    {
+        return $airings->where('live', true)->where('ends_at', '>', CarbonImmutable::now());
     }
 
     /** Ближайший день после выбранного, в котором есть события — для кнопки «Ближайшие». */
@@ -111,7 +122,7 @@ final class EventFeed
     {
         [, $to] = self::window($day);
         if ($onTv) {
-            $next = Airing::query()->where('starts_at', '>=', $to)->where('ends_at', '>', CarbonImmutable::now())
+            $next = self::live(Airing::query())->where('starts_at', '>=', $to)
                 // Завершённые события каталог не показывает — и их повторы тоже.
                 ->whereHas('event', fn (Builder $events) => $events->where('publication_state', 'published')->whereNotIn('status', self::HIDDEN)->whereDoesntHave('children')
                     ->when($sport, fn (Builder $query) => $query->whereHas('competition', fn (Builder $c) => $c->where('sport_id', $sport->id)))

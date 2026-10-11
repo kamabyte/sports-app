@@ -280,11 +280,17 @@ it('surfaces available broadcasts on the catalog homepage', function (): void {
         ->assertInertia(fn (Assert $page) => $page->where('broadcast_count', 1)->has('broadcast_groups', 1));
 });
 
-it('does not list tomorrow repeats under today after todays airing ends', function (): void {
-    seedBroadcastCatalog();
+it('marks and filters by live broadcasts only, replays stay on the event page', function (): void {
+    // Southampton — Portsmouth, 11.10.2026: прямые эфиры закончились, впереди только повторы.
+    $events = seedBroadcastCatalog();
     fakeDispatcharr();
     $this->artisan('guide:import')->assertSuccessful();
     $this->travelTo(CarbonImmutable::parse('2026-10-06 18:10', 'UTC'));
+    $this->actingAs(User::factory()->create());
+
     expect(EventFeed::day(CarbonImmutable::parse('2026-10-06', 'Europe/Moscow'), onTv: true)->count())->toBe(0)
-        ->and(EventFeed::day(CarbonImmutable::parse('2026-10-07', 'Europe/Moscow'), onTv: true)->count())->toBe(1);
+        ->and(EventFeed::day(CarbonImmutable::parse('2026-10-07', 'Europe/Moscow'), onTv: true)->count())->toBe(0)
+        ->and(EventFeed::query()->whereKey($events['handball']->id)->value('on_tv'))->toBeFalsy();
+    $this->get('/event/'.$events['handball']->id)->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->has('broadcasts', 1)->where('broadcasts.0.replay', true));
 });
