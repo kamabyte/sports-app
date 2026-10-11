@@ -449,9 +449,9 @@ export default function CatalogLayout({ children }: { children: ReactNode }) {
                 >
                     {catalog.stale && catalog.updated_at && (
                         <Notice tone="warning" className="mb-4">
-                            Каталог не обновлялся{' '}
-                            {formatAgo(catalog.updated_at, timezone)} — статусы
-                            и счета могут быть устаревшими.
+                            Расписание обновлялось{' '}
+                            {formatAgo(catalog.updated_at, timezone)} — время и
+                            состав матчей могли измениться.
                         </Notice>
                     )}
                     {children}
