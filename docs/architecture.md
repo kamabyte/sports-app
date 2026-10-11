@@ -146,6 +146,13 @@ National teams use flagcdn.com flags (rendered as a full circle).
 
 ## Read side
 
+Catalog (standalone): `App\Sports\Catalog\EventFeed` selects upcoming events,
+`Pages` builds each page's payload once for both the Inertia pages
+(`Web\Catalog\*`) and the TV API `/api/v1` (`Controllers\Catalog\*`,
+`docs/api.md`). Change a page's data in `Pages`, not in a controller.
+
+Legacy IPTV app (`SPORTS_MODE=iptv`; its `/api/*` answers 410 in standalone):
+
 - `EventCatalog` (interface) — `DatabaseEventCatalog` (default; only matches
   with airings) or `FakeEventCatalog` (`SPORTS_SOURCE=fake`, deterministic
   generated week, used by tests).

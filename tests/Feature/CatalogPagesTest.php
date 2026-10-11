@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\User;
-use App\Sports\Catalog\CatalogWriter;
 use App\Sports\Models\Athlete;
 use App\Sports\Models\Competition;
 use App\Sports\Models\Event;
@@ -24,104 +23,6 @@ beforeEach(function () {
 });
 
 afterEach(fn () => CarbonImmutable::setTestNow());
-
-/** Время по Москве, дней от «сегодня». */
-function at(int $days, string $time): CarbonImmutable
-{
-    return CarbonImmutable::parse(CarbonImmutable::now('Europe/Moscow')->addDays($days)->toDateString().' '.$time, 'Europe/Moscow')->utc();
-}
-
-/** Небольшое расписание: футбол (клубы и сборные), парный теннис, Гран-при. */
-function seedSchedule(): void
-{
-    $w = new CatalogWriter;
-    $w->syncSports();
-    $match = function (Competition $competition, array $sides, int $days, ?string $time, string $status = 'scheduled') use ($w): Event {
-        $start = at($days, $time ?? '00:00');
-        $event = $w->event($competition, ['kind' => 'match', 'status' => $status, 'starts_at' => $start, 'date' => $start->setTimezone('Europe/Moscow')->toDateString(), 'time_precision' => $time === null ? 'date' : 'exact']);
-        $w->eventEntries($event, $sides);
-
-        return $event;
-    };
-    $side = fn (int $number, $entry, ?string $label = null, ?string $status = null) => ['side' => $number, 'entry' => $entry, 'label' => $label, 'entry_status' => $status];
-
-    // Футбол.
-    $football = $w->sport('football');
-    $football->update(['active' => true]);
-    $england = $w->country('england', 'England', ['kind' => 'sporting_territory', 'flag_url' => 'https://flagcdn.com/w80/gb-eng.png']);
-    $france = $w->country('france', 'France', ['iso2' => 'FR']);
-    $italy = $w->country('italy', 'Italy', ['iso2' => 'IT']);
-    $w->name($england, 'ru', 'Англия', curated: true);
-    $englandCategory = $w->category($football, 'country', 'england', 'England', country: $england, position: 1);
-    $w->name($englandCategory, 'ru', 'Англия', curated: true);
-    $europe = $w->category($football, 'region', 'europe', 'Europe', region: $w->region('europe', 'Europe', 'Европа'));
-    $pl = $w->competition($football, $englandCategory, ['name' => 'Premier League', 'slug' => 'premier-league', 'kind' => 'league', 'participant_kind' => 'club', 'position' => 1]);
-    $w->name($pl, 'ru', 'Премьер-лига', curated: true);
-    $unl = $w->competition($football, $europe, ['name' => 'UEFA Nations League', 'slug' => 'uefa-nations-league', 'participant_kind' => 'national']);
-
-    $team = function (string $name, string $russian, array $attributes = []) use ($w, $football) {
-        $team = $w->team($football, ['name' => $name] + $attributes);
-        $w->name($team, 'ru', $russian, curated: true);
-
-        return $w->teamEntry($team);
-    };
-    $arsenal = $team('Arsenal', 'Арсенал', ['kind' => 'club']);
-    $chelsea = $team('Chelsea', 'Челси', ['kind' => 'club']);
-    $national = fn (string $name, string $russian, array $attributes) => $team($name, $russian, $attributes + ['kind' => 'national', 'country_id' => $france->id, 'gender' => 'men', 'age_group' => 'senior', 'squad' => 'first']);
-    $frenchSenior = $national('France', 'Франция', []);
-    $national('France W', 'Франция (ж)', ['gender' => 'women']);
-    $national('France U21', 'Франция U21', ['age_group' => 'u21']);
-    $national('France Ol.', 'Франция (олимп.)', ['squad' => 'olympic']);
-    $italian = $team('Italy', 'Италия', ['kind' => 'national', 'country_id' => $italy->id, 'gender' => 'men', 'age_group' => 'senior']);
-
-    $match($pl, [$side(1, $arsenal), $side(2, $chelsea)], 0, '19:30');
-    $match($pl, [$side(1, $chelsea), $side(2, $arsenal)], -1, '19:30', 'finished');
-    $match($pl, [$side(1, $arsenal), $side(2, null, 'Победитель: Челси — Тоттенхэм')], 1, null);
-    $match($pl, [$side(1, null, 'Brighton', 'unlisted'), $side(2, null, 'Everton', 'unlisted')], 0, '17:00');
-    $match($unl, [$side(1, $frenchSenior), $side(2, $italian)], 3, '21:45');
-
-    // Теннис: пары — заявки из двух спортсменов.
-    $tennis = $w->sport('tennis');
-    $tennis->update(['active' => true]);
-    $atp = $w->category($tennis, 'tour', 'atp', 'ATP', position: 1);
-    $doubles = $w->category($tennis, 'tour', 'atp-doubles', 'ATP - Doubles', parent: $atp);
-    $shanghai = $w->competition($tennis, $doubles, ['name' => 'Shanghai (China), hard', 'slug' => 'shanghai', 'participant_kind' => 'individual', 'entry_format' => 'doubles', 'gender' => 'men']);
-    $player = function (string $name, ?string $country) use ($w, $tennis) {
-        $athlete = $w->athlete($tennis, ['name' => $name]);
-        if ($country !== null) {
-            $w->nationality($athlete, $w->country(strtolower($country), $country), null);
-        }
-
-        return $athlete;
-    };
-    $granollers = $player('Granollers M.', 'Spain');
-    $zeballos = $player('Zeballos H.', 'Argentina');
-    $medvedev = $player('Medvedev D.', null);
-    $krawietz = $player('Krawietz K.', 'Germany');
-    $match($shanghai, [$side(1, $w->pairEntry($tennis, $granollers, $zeballos)), $side(2, $w->pairEntry($tennis, $medvedev, $krawietz))], 1, '12:00');
-
-    // Формула-1: этап, сессии, пилоты и их команды.
-    $motorsport = $w->sport('motorsport');
-    $motorsport->update(['active' => true]);
-    $f1 = $w->category($motorsport, 'series', 'auto-racing-formula-1', 'Formula 1');
-    $gp = $w->competition($motorsport, $f1, ['name' => 'Singapore Grand Prix', 'slug' => 'singapore-grand-prix', 'participant_kind' => 'individual']);
-    $meeting = $w->event($gp, ['kind' => 'meeting', 'name' => 'Singapore Grand Prix', 'starts_at' => at(0, '12:30'), 'date' => '2026-10-07', 'status' => 'scheduled']);
-    $drivers = [[$w->athleteEntry($motorsport, $w->athlete($motorsport, ['name' => 'Gasly P.'])), 'Alpine'], [$w->athleteEntry($motorsport, $w->athlete($motorsport, ['name' => 'Verstappen M.'])), 'Red Bull']];
-    foreach ([['Practice 1', 0, '12:30'], ['Race', 3, '15:00']] as [$name, $days, $time]) {
-        $session = $w->event($gp, ['kind' => 'session', 'parent_id' => $meeting->id, 'name' => $name, 'starts_at' => at($days, $time), 'date' => at($days, $time)->setTimezone('Europe/Moscow')->toDateString(), 'status' => 'scheduled', 'venue' => 'Marina Bay Street Circuit']);
-        $w->eventEntries($session, array_map(fn (array $driver) => ['entry' => $driver[0], 'affiliation' => $driver[1]], $drivers));
-    }
-}
-
-function scheduleEvent(string $competition, string $home): Event
-{
-    return Event::query()
-        ->whereHas('competition', fn ($q) => $q->where('name', $competition))
-        ->whereHas('entries', fn ($q) => $q->where('side', 1)->whereHas('entry.team', fn ($t) => $t->where('name', $home)))
-        ->where('status', 'scheduled')
-        ->where('time_precision', 'exact')
-        ->sole();
-}
 
 it('shows a football day under competition headings, without past matches', function () {
     $this->get('/sport/football')

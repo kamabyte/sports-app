@@ -8,6 +8,7 @@ use App\Http\Controllers\Web\Catalog\SportController as CatalogSportController;
 use App\Http\Controllers\Web\Catalog\TeamController;
 use App\Http\Controllers\Web\Catalog\WatchController as CatalogWatchController;
 use App\Http\Controllers\Web\ChannelController;
+use App\Http\Controllers\Web\DeviceController;
 use App\Http\Controllers\Web\EventController;
 use App\Http\Controllers\Web\ModeController;
 use App\Http\Controllers\Web\SportController;
@@ -30,6 +31,10 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('/', [ModeController::class, 'home'])->name('home');
     Route::get('/schedule', [ModeController::class, 'schedule'])->name('schedule');
     Route::get('/search', [ModeController::class, 'search'])->name('search');
+
+    // Подключение ТВ по коду с экрана (вход ТВ-клиента, docs/api.md).
+    Route::get('/device', [DeviceController::class, 'show'])->middleware('throttle:30,1')->name('device.show');
+    Route::post('/device', [DeviceController::class, 'update'])->middleware('throttle:10,1')->name('device.update');
 
     Route::get('/sport/{sport}', [CatalogSportController::class, 'show'])->name('catalog.sport');
     Route::get('/sport/{sport}/competitions', [CatalogSportController::class, 'competitions'])->name('catalog.sport.competitions');

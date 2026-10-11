@@ -23,56 +23,6 @@ beforeEach(function (): void {
     $this->travelTo(CarbonImmutable::parse('2026-10-06 17:00', 'UTC'));
 });
 
-/**
- * Матч каталога со страницей турнира Flashscore (path) и названиями сторон
- * по-английски и по-русски. Теннис — спортсмены, остальное — клубы.
- *
- * @param  list<array{0: string, 1: string}>  $sides
- */
-function seedCatalogMatch(string $sport, string $path, string $competition, array $sides, string $startsAt, string $kind = 'club'): Event
-{
-    $w = new CatalogWriter;
-    $w->syncSports();
-    $flashscore = $w->provider('flashscore', 'Flashscore');
-    $sport = $w->sport($sport);
-    $sport->update(['active' => true]);
-    $category = $w->category($sport, 'series', 'category-'.$sport->key, 'Category');
-    $competition = $w->competition($sport, $category, ['name' => $competition, 'participant_kind' => $sport->key === 'tennis' ? 'individual' : $kind], [$flashscore, 'path', $path]);
-    $start = CarbonImmutable::parse($startsAt, 'UTC');
-    $event = $w->event($competition, ['kind' => 'match', 'status' => 'scheduled', 'starts_at' => $start, 'date' => $start->toDateString(), 'time_precision' => 'exact']);
-    $entries = [];
-    foreach ($sides as $index => [$name, $russian]) {
-        if ($sport->key === 'tennis') {
-            $athlete = $w->athlete($sport, ['name' => $name]);
-            $w->name($athlete, 'ru', $russian);
-            $entries[] = ['side' => $index + 1, 'entry' => $w->athleteEntry($sport, $athlete)];
-        } else {
-            $team = $w->team($sport, ['name' => $name, 'kind' => $kind, 'gender' => 'men', 'age_group' => 'senior']);
-            $w->name($team, 'ru', $russian);
-            $entries[] = ['side' => $index + 1, 'entry' => $w->teamEntry($team)];
-        }
-    }
-    $w->eventEntries($event, $entries);
-
-    return $event;
-}
-
-/**
- * Гандбол ЦСКА — СГАУ-Саратов (в телегиде: прямой эфир на двух каналах и
- * повтор), матч КХЛ для слота «Чемпионат КХЛ», теннис и футбол без показов.
- *
- * @return array<string, Event>
- */
-function seedBroadcastCatalog(): array
-{
-    return [
-        'handball' => seedCatalogMatch('handball', '/handball/russia/superleague/', 'Superleague', [['CSKA Moscow', 'ЦСКА'], ['SGAU Saratov', 'СГАУ-Саратов']], '2026-10-06 16:30'),
-        'khl' => seedCatalogMatch('hockey', '/hockey/russia/khl/', 'KHL', [['SKA St. Petersburg', 'СКА'], ['Cherepovets', 'Северсталь']], '2026-10-06 16:30'),
-        'tennis' => seedCatalogMatch('tennis', '/tennis/atp-singles/shanghai/', 'Shanghai', [['Medvedev D.', 'Медведев Д.'], ['Sinner J.', 'Синнер Я.']], '2026-10-07 07:00'),
-        'football' => seedCatalogMatch('football', '/football/russia/premier-league/', 'Premier League', [['Zenit', 'Зенит'], ['Spartak Moscow', 'Спартак']], '2026-10-06 18:00'),
-    ];
-}
-
 it('attaches live, simulcast and replay airings to catalog events', function (): void {
     $events = seedBroadcastCatalog();
     $names = Name::query()->count();

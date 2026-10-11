@@ -5,10 +5,7 @@ namespace App\Http\Controllers\Web\Catalog;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Web\CatalogDayRequest;
 use App\Sports\Catalog\Display;
-use App\Sports\Catalog\EventFeed;
-use App\Sports\Catalog\EventGroups;
-use App\Sports\Models\Category;
-use App\Sports\Models\Competition;
+use App\Sports\Catalog\Pages;
 use App\Sports\Models\Sport;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -23,15 +20,9 @@ class ScheduleController extends Controller
     public function __invoke(CatalogDayRequest $request): Response
     {
         $day = $request->day();
-        $sport = $request->sportKey() !== null ? Sport::query()->where('key', $request->sportKey())->first() : null;
-        $category = $sport !== null && $request->categoryKey() !== null
-            ? Category::query()->with(['names' => Display::names()])->where('sport_id', $sport->id)->where('key', $request->categoryKey())->first()
-            : null;
-        $competition = $sport !== null && $request->competitionId() !== null
-            ? Competition::query()->with(['names' => Display::names()])->where('sport_id', $sport->id)->find($request->competitionId())
-            : null;
-
-        $events = EventFeed::day($day, $sport, $category, $competition, $request->onTv())->get();
+        $sport = $request->sport();
+        $category = $request->category($sport);
+        $competition = $request->competition($sport);
 
         return Inertia::render('catalog/schedule', [
             'filters' => [
@@ -42,8 +33,7 @@ class ScheduleController extends Controller
                 'tv' => $request->onTv(),
             ],
             'sports' => Sport::query()->where('active', true)->orderBy('position')->get()->map(fn (Sport $item) => ['key' => $item->key, 'name' => $item->name])->all(),
-            'groups' => EventGroups::byCompetition($events),
-            'next_date' => $events->isEmpty() ? EventFeed::nextDay($day, $sport, $category, $request->onTv())?->toDateString() : null,
+            ...Pages::day($day, $sport, $category, $competition, $request->onTv()),
         ]);
     }
 }

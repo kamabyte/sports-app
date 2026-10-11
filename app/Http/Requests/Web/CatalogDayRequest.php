@@ -2,6 +2,10 @@
 
 namespace App\Http\Requests\Web;
 
+use App\Sports\Catalog\Display;
+use App\Sports\Models\Category;
+use App\Sports\Models\Competition;
+use App\Sports\Models\Sport;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -52,6 +56,28 @@ class CatalogDayRequest extends FormRequest
         $id = $this->validated('competition');
 
         return $id === null ? null : (int) $id;
+    }
+
+    /** Выбранный вид спорта; неизвестный ключ — без фильтра. */
+    public function sport(): ?Sport
+    {
+        return $this->sportKey() !== null ? Sport::query()->where('key', $this->sportKey())->first() : null;
+    }
+
+    /** Раздел выбранного вида спорта: раздел другого вида спорта не применяется. */
+    public function category(?Sport $sport): ?Category
+    {
+        return $sport !== null && $this->categoryKey() !== null
+            ? Category::query()->with(['names' => Display::names()])->where('sport_id', $sport->id)->where('key', $this->categoryKey())->first()
+            : null;
+    }
+
+    /** Турнир выбранного вида спорта: турнир другого вида спорта не применяется. */
+    public function competition(?Sport $sport): ?Competition
+    {
+        return $sport !== null && $this->competitionId() !== null
+            ? Competition::query()->with(['names' => Display::names()])->where('sport_id', $sport->id)->find($this->competitionId())
+            : null;
     }
 
     /** Только события с трансляцией. */

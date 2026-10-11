@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Web\Catalog;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Catalog\EventItem;
 use App\Sports\Catalog\Display;
-use App\Sports\Catalog\EventFeed;
+use App\Sports\Catalog\Pages;
 use App\Sports\Catalog\Paging;
 use App\Sports\Catalog\SportPanel;
 use Illuminate\Http\RedirectResponse;
@@ -32,24 +31,8 @@ class CompetitionController extends Controller
             return redirect(Display::competitionUrl($sport->key, $competition).($request->getQueryString() ? '?'.$request->getQueryString() : ''));
         }
 
-        $limit = Paging::limit($request);
-        [$fixtures, $more] = Paging::slice(EventFeed::competition($competition, $limit + 1), $limit);
-
-        return Inertia::render('catalog/competition', [
-            'competition' => [
-                'id' => $competition->id,
-                'name' => Display::name($competition),
-                'original_name' => Display::originalName($competition),
-                'logo' => $competition->logo?->url,
-                'url' => Display::competitionUrl($sport->key, $competition),
-                'badges' => Display::competitionBadges($competition),
-                'category' => ['name' => Display::name($competition->primaryCategory), 'flag' => Display::flag($competition->primaryCategory->country), 'url' => Display::categoryUrl($sport->key, $competition->primaryCategory)],
-            ],
-            'sport' => ['key' => $sport->key, 'name' => $sport->name, 'family' => $sport->family, 'url' => Display::sportUrl($sport->key), 'has_data' => $sport->active],
+        return Inertia::render('catalog/competition', Pages::competition($competition, Paging::limit($request)) + [
             'crumbs' => $this->crumbs($sport, $category, $competition),
-            'fixtures' => EventItem::collection($fixtures)->resolve(),
-            'limit' => $limit,
-            'more' => $more,
             'panel' => SportPanel::for($sport),
         ]);
     }
