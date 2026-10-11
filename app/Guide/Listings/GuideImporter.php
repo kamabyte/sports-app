@@ -49,22 +49,15 @@ final readonly class GuideImporter
 
     public function import(): ImportResult
     {
-        $channels = $this->importChannels();
-
         $now = CarbonImmutable::now('UTC');
         [$paths, $guides, $errors] = $this->loadGuides();
-        $programmes = $this->readProgrammes($channels, $paths, $guides, $now);
+        $channels = $this->importChannels();
+        [$programmes, $refreshedChannels] = $this->readProgrammes($channels, $paths, $guides, $now);
 
         $parsed = $this->parseProgrammes($programmes);
-        if ($parsed !== []) {
-            $windowStart = min(array_map(fn (array $programme) => $programme['programme']->startsAt, $parsed));
-            $windowEnd = max(array_map(fn (array $programme) => $programme['programme']->endsAt, $parsed));
-        } else {
-            $windowStart = $now->subDay();
-            $windowEnd = $now->addDays($this->daysAhead);
-        }
-
-        $airings = $this->target->rebuild($windowStart, $windowEnd, $parsed);
+        $windowStart = $now->subDay();
+        $windowEnd = $now->addDays($this->daysAhead);
+        $airings = $this->target->rebuild($windowStart, $windowEnd, $parsed, $refreshedChannels);
 
         return new ImportResult(
             channels: $channels->count(),
@@ -156,7 +149,7 @@ final readonly class GuideImporter
      * @param  Collection<int, Channel>  $channels
      * @param  array<string, string>  $paths
      * @param  array<string, array<string, list<string>>>  $guides
-     * @return list<array{programme: Programme, channel: Channel}>
+     * @return array{0: list<array{programme: Programme, channel: Channel}>, 1: list<int>}
      */
     private function readProgrammes(Collection $channels, array $paths, array $guides, CarbonImmutable $now): array
     {
@@ -196,7 +189,16 @@ final readonly class GuideImporter
         }
 
         $result = [];
+        $refreshed = [];
         foreach ($channels as $channel) {
+            // A missing source must not erase its last known mapping or broadcasts.
+            $source = array_key_exists($channel->name, $this->overrides)
+                ? (explode(':', (string) $this->overrides[$channel->name], 2)[0] ?: null)
+                : $channel->guide_source;
+            if ($source !== null && in_array($source, $order, true) && ! isset($paths[$source])) {
+                continue;
+            }
+            $refreshed[] = $channel->id;
             $choice = $this->channelMatcher->choose($candidates[$channel->id] ?? [], $stats, $order);
             $channel->update(['guide_source' => $choice['source'] ?? null, 'guide_channel' => $choice['channel'] ?? null]);
 
@@ -205,7 +207,7 @@ final readonly class GuideImporter
             }
         }
 
-        return $result;
+        return [$result, $refreshed];
     }
 
     /**

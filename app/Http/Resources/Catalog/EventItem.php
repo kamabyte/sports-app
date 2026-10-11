@@ -8,6 +8,7 @@ use App\Sports\Models\Entry;
 use App\Sports\Models\Event;
 use App\Sports\Models\EventEntry;
 use App\Sports\Models\Team;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -30,6 +31,7 @@ class EventItem extends JsonResource
     public function toArray(Request $request): array
     {
         $competition = $this->competition;
+        $broadcastStart = $this->getAttribute('broadcast_starts_at');
         $headToHead = in_array($this->kind, self::HEAD_TO_HEAD, true);
 
         return [
@@ -44,6 +46,7 @@ class EventItem extends JsonResource
             'status_label' => Display::status($this->status),
             'time_precision' => $this->time_precision,
             'starts_at' => $this->starts_at?->toIso8601String(),
+            'broadcast_starts_at' => is_string($broadcastStart) ? CarbonImmutable::parse($broadcastStart, 'UTC')->toIso8601String() : null,
             'date' => $this->date?->toDateString(),
             'competition' => CompetitionItem::make($competition)->resolve(),
             'sides' => $headToHead ? $this->sides() : null,

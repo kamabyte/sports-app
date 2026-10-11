@@ -19,14 +19,15 @@ final readonly class LegacyAirings implements AiringTarget
         private CompetitionRegistry $competitions,
     ) {}
 
-    public function rebuild(CarbonImmutable $from, CarbonImmutable $to, array $parsed): int
+    /** @param list<int>|null $channelIds */
+    public function rebuild(CarbonImmutable $from, CarbonImmutable $to, array $parsed, ?array $channelIds = null): int
     {
         $this->competitions->sync();
         $airings = 0;
 
-        DB::transaction(function () use ($from, $to, $parsed, &$airings): void {
+        DB::transaction(function () use ($from, $to, $parsed, $channelIds, &$airings): void {
             // Будущие показы пересобираются заново, прошедшие остаются (история).
-            Airing::query()->where('starts_at', '>=', $from)->delete();
+            $ids = [];
             $this->matcher->load($from, $to);
 
             foreach ($parsed as ['programme' => $programme, 'channel' => $channel, 'parsed' => $title]) {
@@ -37,7 +38,10 @@ final readonly class LegacyAirings implements AiringTarget
                     continue;
                 }
 
-                Airing::query()->create([
+                $airing = Airing::query()->updateOrCreate([
+                    'channel_id' => $channel->id,
+                    'starts_at' => $programme->startsAt,
+                ], [
                     'sport_event_id' => $found['match']->id,
                     'channel_id' => $channel->id,
                     'title' => $programme->title,
@@ -46,8 +50,12 @@ final readonly class LegacyAirings implements AiringTarget
                     'live' => $found['live'],
                     'replay' => ! $found['live'],
                 ]);
+                $ids[] = $airing->id;
                 $airings++;
             }
+            Airing::query()->where('ends_at', '>', $from)->where('starts_at', '<', $to)
+                ->when($channelIds !== null, fn ($query) => $query->whereIn('channel_id', $channelIds))
+                ->whereNotIn('id', $ids)->delete();
         });
 
         return $airings;

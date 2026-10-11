@@ -25,6 +25,7 @@ final readonly class Candidate
         /** Стороны — спортсмены: пол и возраст по названию не проверяются (WTA без «женщин»). */
         public bool $individual = false,
     ) {
+        $this->start = $startsAt->getTimestamp();
         $this->homeKeys = self::keys($home);
         $this->awayKeys = self::keys($away);
     }
@@ -58,6 +59,9 @@ final readonly class Candidate
 
         return $keys;
     }
+
+    /** Начало, Unix-время: сравнений с передачами миллионы, Carbon для них дорог. */
+    public int $start;
 
     /** @var array<string, true> ключи написаний стороны 1 (NameSimilarity::keys) */
     public array $homeKeys;

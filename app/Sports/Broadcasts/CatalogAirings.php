@@ -17,7 +17,8 @@ final readonly class CatalogAirings implements AiringTarget
         private EventMatcher $matcher,
     ) {}
 
-    public function rebuild(CarbonImmutable $from, CarbonImmutable $to, array $parsed): int
+    /** @param list<int>|null $channelIds */
+    public function rebuild(CarbonImmutable $from, CarbonImmutable $to, array $parsed, ?array $channelIds = null): int
     {
         $this->matcher->load($from, $to);
         $rows = [];
@@ -42,12 +43,18 @@ final readonly class CatalogAirings implements AiringTarget
             ];
         }
 
-        CatalogDatabase::connection()->transaction(function () use ($from, $rows): void {
-            // Будущие показы пересобираются заново, прошедшие остаются (история).
-            Airing::query()->where('starts_at', '>=', $from)->delete();
-            foreach (array_chunk($rows, 500) as $chunk) {
-                Airing::query()->insert($chunk);
+        CatalogDatabase::connection()->transaction(function () use ($from, $to, $rows, $channelIds): void {
+            $ids = [];
+            foreach ($rows as $row) {
+                $airing = Airing::query()->updateOrCreate([
+                    'channel_id' => $row['channel_id'],
+                    'starts_at' => $row['starts_at'],
+                ], array_diff_key($row, ['created_at' => true]));
+                $ids[] = $airing->id;
             }
+            Airing::query()->where('ends_at', '>', $from)->where('starts_at', '<', $to)
+                ->when($channelIds !== null, fn ($query) => $query->whereIn('channel_id', $channelIds))
+                ->whereNotIn('id', $ids)->delete();
         });
 
         return count($rows);

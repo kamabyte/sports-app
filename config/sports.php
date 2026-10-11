@@ -5,8 +5,8 @@ return [
     /*
      * Режим приложения. standalone — самостоятельный спортивный каталог
      * (docs/sports-catalog-reorganization-plan.md): данные только из Flashscore,
-     * каналы, телегиды, Dispatcharr и старые источники расписания выключены и
-     * ничего не запрашивают. iptv — прежнее приложение «матчи с трансляциями»;
+     * Dispatcharr и телегиды добавляют трансляции к событиям каталога.
+     * Старые источники расписания выключены. iptv — прежнее приложение «матчи с трансляциями»;
      * возвращать его — отдельное решение владельца.
      */
     'mode' => env('SPORTS_MODE', 'standalone'),
@@ -301,13 +301,22 @@ return [
             'co' => ['name' => 'Колумбия', 'url' => 'https://epgshare01.online/epgshare01/epg_ripper_CO1.xml.gz'],
             'mx' => ['name' => 'Мексика', 'url' => 'https://epgshare01.online/epgshare01/epg_ripper_MX1.xml.gz'],
             'in' => ['name' => 'Индия', 'url' => 'https://epgshare01.online/epgshare01/epg_ripper_IN1.xml.gz'],
+            // Добавлены 11.10.2026 по замеру: в них есть программа наших каналов,
+            // которой нет в остальных (viju+ Sport, Sport 4 UA, SporTV, Star Sports, V Sport).
+            'in4' => ['name' => 'Индия (Star Sports)', 'url' => 'https://epgshare01.online/epgshare01/epg_ripper_IN4.xml.gz'],
+            'ua' => ['name' => 'Украина', 'url' => 'https://epgshare01.online/epgshare01/epg_ripper_UA1.xml.gz'],
+            'br' => ['name' => 'Бразилия', 'url' => 'https://epgshare01.online/epgshare01/epg_ripper_BR2.xml.gz'],
+            'se' => ['name' => 'Швеция', 'url' => 'https://epgshare01.online/epgshare01/epg_ripper_SE1.xml.gz'],
+            'tr' => ['name' => 'Турция', 'url' => 'https://epgshare01.online/epgshare01/epg_ripper_TR3.xml.gz'],
             'samsung_us' => ['name' => 'Samsung TV Plus', 'url' => 'https://github.com/matthuisman/i.mjh.nz/raw/master/SamsungTVPlus/us.xml.gz', 'any_country' => true],
             'roku' => ['name' => 'Roku', 'url' => 'https://github.com/matthuisman/i.mjh.nz/raw/master/Roku/all.xml', 'any_country' => true],
         ],
 
         // Привязка вручную, если автоматическая ошиблась: название канала →
         // «источник:id канала в телегиде»; null — канал без телегида.
-        'channels' => [],
+        'channels' => [
+            'Fox Sports 1' => 'us:FS1.Fox.Sports.1.HD.us2',
+        ],
 
         // Передача без соперников («Чемпионат КХЛ», «Формула-1. Гонка») — слот
         // турнира: ключ турнира телегида (CompetitionCatalog) → страницы

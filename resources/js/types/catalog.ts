@@ -96,6 +96,8 @@ export interface Side {
 }
 
 export interface EventItem {
+    /** Начало ближайшего показа в выбранном дне телепрограммы. */
+    broadcast_starts_at: string | null;
     id: number;
     url: string;
     kind: string;

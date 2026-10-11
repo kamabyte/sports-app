@@ -6,6 +6,7 @@ import {
     eventDay,
     eventTime,
     formatDay,
+    formatTime,
     isLive,
     pluralize,
 } from '@/lib/catalog';
@@ -24,7 +25,9 @@ export function StatusCell({
     showDate?: boolean;
 }) {
     const timezone = useTimezone();
-    const time = eventTime(event, timezone);
+    const time = event.broadcast_starts_at
+        ? formatTime(event.broadcast_starts_at, timezone)
+        : eventTime(event, timezone);
     const day = eventDay(event, timezone);
     const live = isLive(event);
 

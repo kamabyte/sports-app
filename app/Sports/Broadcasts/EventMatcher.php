@@ -75,8 +75,11 @@ final class EventMatcher
         'other' => ['table-tennis', 'badminton'],
     ];
 
-    /** @var array<string, list<Candidate>> по виду спорта каталога */
+    /** @var array<string, list<Candidate>> по виду спорта каталога, по времени начала */
     private array $candidates = [];
+
+    /** @var array<string, list<int>> начала тех же событий — для поиска окна делением пополам */
+    private array $starts = [];
 
     /** @var array<string, list<int>> ключ слота → турниры каталога */
     private array $slots = [];
@@ -94,7 +97,13 @@ final class EventMatcher
      */
     public function load(CarbonImmutable $from, CarbonImmutable $to): void
     {
-        $this->candidates = $this->events->load($from, $to);
+        $this->candidates = [];
+        $this->starts = [];
+        foreach ($this->events->load($from, $to) as $sport => $list) {
+            usort($list, fn (Candidate $a, Candidate $b) => $a->start <=> $b->start);
+            $this->candidates[$sport] = $list;
+            $this->starts[$sport] = array_map(fn (Candidate $candidate) => $candidate->start, $list);
+        }
         $this->slots = $this->resolveSlots();
     }
 
@@ -103,10 +112,17 @@ final class EventMatcher
      */
     public function match(ParsedTitle $parsed, CarbonImmutable $startsAt, CarbonImmutable $endsAt): ?array
     {
+        // Только события, которые могут быть в этой передаче: начались не раньше
+        // окна повтора и не позже окна прямого эфира.
+        $from = $startsAt->getTimestamp() - EventCandidates::REPLAY_WINDOW_DAYS * 86400;
+        $to = $startsAt->getTimestamp() + self::LIVE_WINDOW_MINUTES * 60;
         $candidates = [];
         $sports = $parsed->knowsSport() ? self::SPORTS[$parsed->sport] ?? [] : array_keys($this->candidates);
         foreach ($sports as $sport) {
-            array_push($candidates, ...$this->candidates[$sport] ?? []);
+            $starts = $this->starts[$sport] ?? [];
+            for ($index = self::firstAtOrAfter($starts, $from); $index < count($starts) && $starts[$index] <= $to; $index++) {
+                $candidates[] = $this->candidates[$sport][$index];
+            }
         }
 
         $found = $parsed->hasTeams()
@@ -117,7 +133,7 @@ final class EventMatcher
             return null;
         }
 
-        $live = $startsAt->lte($found->startsAt->addMinutes(self::KICKOFF_GRACE_MINUTES)) && $endsAt->gt($found->startsAt);
+        $live = ! $parsed->replay && $startsAt->lte($found->startsAt->addMinutes(self::KICKOFF_GRACE_MINUTES)) && $endsAt->gt($found->startsAt);
 
         return ['event' => $found->eventId, 'live' => $live];
     }
@@ -137,8 +153,10 @@ final class EventMatcher
         }
         [$minLive, $minReplay] = $known ? [self::MIN_SCORE_LIVE, self::MIN_SCORE_REPLAY] : [self::MIN_SCORE_ANY_LIVE, self::MIN_SCORE_ANY_REPLAY];
         $best = null;
+        $bestLive = false;
         $bestRank = 0.0;
         $secondRank = 0.0;
+        [$start, $end] = [$startsAt->getTimestamp(), $endsAt->getTimestamp()];
 
         foreach ($candidates as $candidate) {
             if (! $candidate->headToHead() || (! $candidate->individual && $candidate->category !== $category)) {
@@ -146,12 +164,12 @@ final class EventMatcher
             }
 
             // Закончилась до начала — студия перед матчем, а не сам матч.
-            if ($endsAt->lte($candidate->startsAt)) {
+            if ($end <= $candidate->start) {
                 continue;
             }
 
-            $live = abs($startsAt->diffInMinutes($candidate->startsAt)) <= self::LIVE_WINDOW_MINUTES;
-            $replay = $startsAt->gt($candidate->startsAt) && $startsAt->lte($candidate->startsAt->addDays(EventCandidates::REPLAY_WINDOW_DAYS));
+            $live = ! $parsed->replay && abs($start - $candidate->start) <= self::LIVE_WINDOW_MINUTES * 60;
+            $replay = $start > $candidate->start && $start <= $candidate->start + EventCandidates::REPLAY_WINDOW_DAYS * 86400;
             if (! $live && ! $replay) {
                 continue;
             }
@@ -170,7 +188,7 @@ final class EventMatcher
             }
 
             if ($rank > $bestRank) {
-                [$best, $bestRank, $secondRank] = [$candidate, $rank, $bestRank];
+                [$best, $bestLive, $bestRank, $secondRank] = [$candidate, $live, $rank, $bestRank];
             } elseif ($rank > $secondRank) {
                 $secondRank = $rank;
             }
@@ -181,7 +199,44 @@ final class EventMatcher
             return null;
         }
 
+        // Повтор серии («2nd T20: India vs West Indies», плей-офф): те же соперники
+        // в том же турнире играют не раз — какой из матчей показывают, не понять.
+        if ($best !== null && ! $bestLive && $this->rematch($parsed, $best, $minReplay)) {
+            return null;
+        }
+
         return $best;
+    }
+
+    /** Есть ли ещё событие тех же соперников в том же турнире. */
+    private function rematch(ParsedTitle $parsed, Candidate $best, float $minScore): bool
+    {
+        foreach ($this->candidates as $list) {
+            foreach ($list as $candidate) {
+                if ($candidate !== $best && $candidate->competitionId === $best->competitionId
+                    && TeamMatch::byNames((string) $parsed->home, (string) $parsed->away, $candidate->home, $candidate->away)['score'] >= $minScore) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Первый индекс со значением не меньше $value (массив отсортирован).
+     *
+     * @param  list<int>  $values
+     */
+    private static function firstAtOrAfter(array $values, int $value): int
+    {
+        [$low, $high] = [0, count($values)];
+        while ($low < $high) {
+            $middle = intdiv($low + $high, 2);
+            $values[$middle] < $value ? $low = $middle + 1 : $high = $middle;
+        }
+
+        return $low;
     }
 
     /**
@@ -189,6 +244,10 @@ final class EventMatcher
      */
     private function bySlot(ParsedTitle $parsed, array $candidates, CarbonImmutable $startsAt): ?Candidate
     {
+        if ($parsed->replay) {
+            return null;
+        }
+
         $key = CompetitionCatalog::match($parsed->sport, $parsed->competition);
         $competitions = $key !== null ? $this->slots[$key] ?? [] : [];
         if ($competitions === []) {

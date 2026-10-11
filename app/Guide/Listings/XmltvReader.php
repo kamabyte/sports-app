@@ -72,8 +72,6 @@ final class XmltvReader
             // Чужие каналы пропускаем не разбирая: их в файле — тысячи.
             $channel = (string) $reader->getAttribute('channel');
             if (! isset($channels[$channel])) {
-                $reader->next();
-
                 continue;
             }
 

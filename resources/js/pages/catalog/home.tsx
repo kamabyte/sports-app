@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { ArrowRight, Trophy } from 'lucide-react';
+import { ArrowRight, Trophy, Tv } from 'lucide-react';
 import { EventGroups } from '@/components/catalog/event-list';
 import { Empty } from '@/components/catalog/states';
 import { useTimezone } from '@/hooks/use-timezone';
@@ -27,9 +27,13 @@ interface SportSummary {
 export default function Home({
     date,
     sports,
+    broadcast_groups,
+    broadcast_count,
 }: {
     date: string;
     sports: SportSummary[];
+    broadcast_groups: EventGroup[];
+    broadcast_count: number;
 }) {
     const timezone = useTimezone();
     const catalog = useCatalog();
@@ -48,6 +52,34 @@ export default function Home({
                         {formatLongDate(date)}
                     </p>
                 </header>
+
+                <section aria-labelledby="broadcasts">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                        <h2
+                            id="broadcasts"
+                            className="flex items-center gap-2 text-[15px] font-semibold"
+                        >
+                            <Tv className="size-4" aria-hidden />
+                            Сегодня по ТВ
+                            <span className="text-muted-foreground">
+                                {broadcast_count}
+                            </span>
+                        </h2>
+                        <Link
+                            href={`/schedule?date=${date}&tv=1`}
+                            className="inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground"
+                        >
+                            Все трансляции <ArrowRight className="size-3.5" />
+                        </Link>
+                    </div>
+                    {broadcast_groups.length > 0 ? (
+                        <EventGroups groups={broadcast_groups} />
+                    ) : (
+                        <p className="text-[13px] text-muted-foreground">
+                            На сегодня подтверждённых трансляций нет.
+                        </p>
+                    )}
+                </section>
 
                 <section aria-labelledby="sports">
                     <h2 id="sports" className="mb-3 text-[15px] font-semibold">

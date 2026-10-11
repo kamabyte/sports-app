@@ -30,10 +30,10 @@ final class TitleParser
     private const string LIVE_PHRASES = '/(?<!\p{L})(прямая трансляция|прямой эфир|пряма трансляція|live|élő|živě|naživo|uživo|en vivo|en directo|en direct|in diretta|transmisiune directă|transmisiune directa)(?!\p{L})/iu';
 
     /** Повтор: «(Reluare)», «ism.», «záznam». */
-    private const string REPLAY_PHRASES = '/\(?(?<!\p{L})(reluare|ism\.|ismétlés|záznam|repetición|rediffusion|differita)(?!\p{L})\)?/iu';
+    private const string REPLAY_PHRASES = '/\(?(?<!\p{L})(full match replay|replay|reluare|ism\.|ismétlés|záznam|repetición|rediffusion|differita)(?!\p{L})\)?/iu';
 
     /** Передачи о спорте, а не трансляции. */
-    private const string SHOWS = '/(?<!\p{L})(обзор|превью|шоу|реакция|выпуск|яркие матчи|лучшие моменты|анонс|журнал|студия|новости|классика|иконы|итоги|подкаст|реалити|наши чемпионы|магия|спорт\.док|ностальжи|величайш|все или ничего|тактика|видео дня|перед матчем|после матча|ток-шоу|эксклюзив|тревел|подробно|трансферы|гала-концерт|лучшие|легенды|неделя|история|документальн|уточняется|felvezető|értékelő|összefoglaló|magazin|magazín|highlights|sestřih|zprávy|hírek|noticias|resumen|rewind|epic moments|best of|all access|documentary|dokument|tonight|pregame|postgame|pre-game|post-game|countdown|recap|press conference|paddock|pit walk|in-game|full match replay|match time)/iu';
+    private const string SHOWS = '/(?<!\p{L})(обзор|превью|шоу|реакция|выпуск|яркие матчи|лучшие моменты|анонс|журнал|студия|новости|классика|иконы|итоги|подкаст|реалити|наши чемпионы|магия|спорт\.док|ностальжи|величайш|все или ничего|тактика|видео дня|перед матчем|после матча|ток-шоу|эксклюзив|тревел|подробно|трансферы|гала-концерт|лучшие|легенды|неделя|история|документальн|уточняется|felvezető|értékelő|összefoglaló|magazin|magazín|highlights|sestřih|zprávy|hírek|noticias|resumen|rewind|epic moments|best of|all access|documentary|dokument|tonight|pregame|postgame|pre-game|post-game|countdown|recap|press conference|paddock|pit walk|in-game|match time|résumé|greatest games|shot clock|on the fly)/iu';
 
     /** Сегменты без смысла: качество, «премьера», «сегодня». */
     private const array FILLERS = ['hd', 'sd', 'uhd', 'fhd', '4k', 'premier', 'premiera', 'premiéra', 'mai', 'dnes'];
@@ -85,7 +85,7 @@ final class TitleParser
             }
         }
 
-        if (preg_match(self::SHOWS, $text)) {
+        if (preg_match(self::SHOWS, $text) || $this->oldSeason($text, $airsAt)) {
             return null;
         }
 
@@ -132,6 +132,28 @@ final class TitleParser
         )));
 
         return $this->fromSegments($segments, $live, $replay, $sportHint);
+    }
+
+    /**
+     * Архив прошлых сезонов: «Сезон 2019/20», «Klasici Premijer lige … 2017/18».
+     * Прошлый сезон («2025/26» осенью 2026) — ещё не архив. Год без дроби — не
+     * сезон: «Тукумс 2000».
+     */
+    private function oldSeason(string $text, ?CarbonImmutable $airsAt): bool
+    {
+        // «EFL Cup. 2009 Final: …», «2015: Manchester City v …» — год архивного матча.
+        if ($airsAt !== null && preg_match('/(?<![\d.\/])((?:19|20)\d{2})(?=\s+final\b|:)/iu', $text, $archive) && (int) $archive[1] < $airsAt->year - 1) {
+            return true;
+        }
+
+        if ($airsAt === null || ! preg_match('/(?:сезон|season|temporada|saison|stagione)\s+(\d{2,4})(?:\/\d{2,4})?|(?<![\d.\/])((?:19|20)\d{2})\/(?:\d{2}|\d{4})(?![\d\/])/iu', $text, $match)) {
+            return false;
+        }
+
+        $year = (int) ($match[1] !== '' ? $match[1] : $match[2]);
+        $year = $year < 100 ? 2000 + $year : $year;
+
+        return $year < $airsAt->year - 1;
     }
 
     /**

@@ -103,3 +103,18 @@ it('strips our own trailing country code and falls back to the neighbouring CZ/S
         ->and(chosenGuide(channelNamed(3, 'Canal+ Sport 2 HU', 'CanalPlusSport2HU.hu@SD'), $guides))
         ->toBeNull();
 });
+
+it('matches accented Latin channel names without crossing countries', function (): void {
+    $guides = ['cz' => ['ČT.sport.cz' => ['ČT sport']], 'hu' => ['Spíler1.TV.hu' => ['Spíler1 TV']]];
+    expect(chosenGuide(channelNamed(1, 'CT Sport', 'CTSport.cz@SD'), $guides))->toBe(['source' => 'cz', 'channel' => 'ČT.sport.cz'])
+        ->and(chosenGuide(channelNamed(2, 'Spiler 1', 'Spiler1.hu@SD'), $guides))->toBe(['source' => 'hu', 'channel' => 'Spíler1.TV.hu'])
+        ->and(chosenGuide(channelNamed(3, 'Spiler 1', 'Spiler1.cz@SD'), $guides))->toBeNull();
+});
+
+it('ignores square-bracket tags in guide channel names', function (): void {
+    // epgshare01 UA1 и SE1, 11.10.2026: метка региона или кода в квадратных скобках.
+    expect(chosenGuide(channelNamed(1, 'Sport 4 (Ukraine)', 'Sport4.ua@SD'), ['ua' => ['Sport.4.[UA-RU].ua' => ['Sport 4 [UA-RU]']]]))
+        ->toBe(['source' => 'ua', 'channel' => 'Sport.4.[UA-RU].ua'])
+        ->and(chosenGuide(channelNamed(2, 'V Sport Golf', 'VSportGolf.se@SD'), ['se' => ['[VGOLFHD].V.Sport.Golf.HD.se' => ['[VGOLFHD] V Sport Golf HD']]]))
+        ->toBe(['source' => 'se', 'channel' => '[VGOLFHD].V.Sport.Golf.HD.se']);
+});

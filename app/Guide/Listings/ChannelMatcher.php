@@ -211,7 +211,8 @@ final class ChannelMatcher
     /** Один ключ у «Sport 1 HD» и «Sport1», «FOX Sports (East)» и «Fox Sports», «Fast&FunBox» и «Fast & Fun Box». */
     private function key(string $name): string
     {
-        $name = mb_strtolower((string) preg_replace('/\([^)]*\)/u', ' ', $name));
+        $name = mb_strtolower((string) preg_replace(['/\([^)]*\)/u', '/\[[^\]]*\]/u'], ' ', $name));
+        $name = transliterator_transliterate('Latin-ASCII', $name) ?: $name;
         $name = str_replace(['+', '&'], [' plus ', ' and '], $name);
         $words = preg_split('/[^\p{L}\p{N}]+/u', $name, flags: PREG_SPLIT_NO_EMPTY) ?: [];
 

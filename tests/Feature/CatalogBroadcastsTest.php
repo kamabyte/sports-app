@@ -1,12 +1,15 @@
 <?php
 
 use App\Models\Airing as LegacyAiring;
+use App\Models\Channel;
 use App\Models\User;
 use App\Sports\Catalog\CatalogWriter;
+use App\Sports\Catalog\EventFeed;
 use App\Sports\Models\Airing;
 use App\Sports\Models\Event;
 use App\Sports\Models\Name;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Http;
 use Inertia\Testing\AssertableInertia as Assert;
 
 /*
@@ -145,6 +148,21 @@ it('does not take a show that ends before kickoff for the match', function (): v
     expect($events['handball']->airings()->where('starts_at', '<', CarbonImmutable::parse('2026-10-06 16:25', 'UTC'))->count())->toBe(0);
 });
 
+it('attaches a series game live, but not a replay it cannot tell apart', function (): void {
+    // Star Sports 2, 11.10.2026: «2nd T20: India vs West Indies» — у серии те же соперники.
+    $second = seedCatalogMatch('cricket', '/cricket/world/india-west-indies-t20/', 'T20 Series', [['India', 'Индия'], ['West Indies', 'Вест-Индия']], '2026-10-04 13:30');
+    $third = seedCatalogMatch('cricket', '/cricket/world/india-west-indies-t20/', 'T20 Series', [['India', 'Индия'], ['West Indies', 'Вест-Индия']], '2026-10-06 13:30');
+    fakeDispatcharr([
+        ['1', '20261006132000', '20261006170000', 'Live - 3rd T20: India vs. West Indies; T20 Cricket'],
+        ['2', '20261006050000', '20261006090000', '2nd T20: India vs West Indies; T20 Cricket'],
+    ]);
+
+    $this->artisan('guide:import')->assertSuccessful();
+
+    expect($third->airings()->pluck('live')->all())->toBe([true])
+        ->and($second->airings()->count())->toBe(0);
+});
+
 it('marks events on TV in lists, filters by it and keeps events without broadcasts', function (): void {
     $events = seedBroadcastCatalog();
     fakeDispatcharr();
@@ -204,4 +222,69 @@ it('shows broadcasts on the event page and the stream only on the watch page', f
 
     // Чужой показ и событие без трансляций — 404.
     $this->get("/event/{$events['football']->id}/watch")->assertNotFound();
+});
+
+it('preserves broadcast ids and watch links across guide refreshes', function (): void {
+    $events = seedBroadcastCatalog();
+    fakeDispatcharr();
+    $this->artisan('guide:import')->assertSuccessful();
+    $ids = $events['handball']->airings()->orderBy('id')->pluck('id')->all();
+    $this->artisan('guide:import')->assertSuccessful();
+    expect($events['handball']->airings()->orderBy('id')->pluck('id')->all())->toBe($ids);
+});
+
+it('keeps finished events hidden even with an upcoming repeat', function (): void {
+    // Решение владельца (11.10.2026): каталог показывает только предстоящие события.
+    $events = seedBroadcastCatalog();
+    fakeDispatcharr();
+    $this->artisan('guide:import')->assertSuccessful();
+    $events['handball']->update(['status' => 'finished']);
+    $this->actingAs(User::factory()->create());
+
+    $this->get('/schedule?date=2026-10-07&tv=1')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->has('groups', 0)->where('next_date', null));
+    $this->get('/event/'.$events['handball']->id)->assertNotFound();
+    $this->get('/event/'.$events['handball']->id.'/watch')->assertNotFound();
+});
+
+it('preserves broadcasts for an unavailable guide while refreshing other channels', function (): void {
+    $events = seedBroadcastCatalog();
+    fakeDispatcharr();
+    $this->artisan('guide:import')->assertSuccessful();
+    $channel = Channel::query()->where('number', 1)->firstOrFail();
+    $channel->update(['guide_source' => 'unavailable']);
+    $ids = Airing::query()->where('channel_id', $channel->id)->pluck('id')->all();
+    config(['sports.guides.sources.unavailable' => ['name' => 'Unavailable', 'url' => 'https://guide.test/down.xml']]);
+    Http::fake(['guide.test/down.xml' => Http::response('Unavailable', 503)]);
+    $this->artisan('guide:import')->assertSuccessful();
+    expect(Airing::query()->where('channel_id', $channel->id)->pluck('id')->all())->toBe($ids)
+        ->and($channel->fresh()->guide_source)->toBe('unavailable');
+});
+
+it('does not label an explicit repeat as live or attach it to a future kickoff', function (): void {
+    $events = seedBroadcastCatalog();
+    fakeDispatcharr([
+        ['1', '20261006163500', '20261006183500', 'Гандбол. ЦСКА – СГАУ-Саратов. Повтор'],
+        ['1', '20261006160000', '20261006180000', 'Гандбол. ЦСКА – СГАУ-Саратов. Повтор'],
+    ]);
+    $this->artisan('guide:import')->assertSuccessful();
+    expect($events['handball']->airings()->where('title', 'like', '%Повтор')->count())->toBe(1)
+        ->and($events['handball']->airings()->where('title', 'like', '%Повтор')->value('live'))->toBeFalse();
+});
+
+it('surfaces available broadcasts on the catalog homepage', function (): void {
+    seedBroadcastCatalog();
+    fakeDispatcharr();
+    $this->artisan('guide:import')->assertSuccessful();
+    $this->actingAs(User::factory()->create())->get('/')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('broadcast_count', 1)->has('broadcast_groups', 1));
+});
+
+it('does not list tomorrow repeats under today after todays airing ends', function (): void {
+    seedBroadcastCatalog();
+    fakeDispatcharr();
+    $this->artisan('guide:import')->assertSuccessful();
+    $this->travelTo(CarbonImmutable::parse('2026-10-06 18:10', 'UTC'));
+    expect(EventFeed::day(CarbonImmutable::parse('2026-10-06', 'Europe/Moscow'), onTv: true)->count())->toBe(0)
+        ->and(EventFeed::day(CarbonImmutable::parse('2026-10-07', 'Europe/Moscow'), onTv: true)->count())->toBe(1);
 });

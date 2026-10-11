@@ -2,6 +2,7 @@
 
 namespace App\Sports\Catalog;
 
+use App\Sports\Models\Airing;
 use App\Sports\Models\Category;
 use App\Sports\Models\Competition;
 use App\Sports\Models\Event;
@@ -83,14 +84,24 @@ final class EventFeed
 
         return self::query()
             ->whereDoesntHave('children')
-            ->where(fn (Builder $query) => $query
-                ->where(fn (Builder $exact) => $exact->where('time_precision', 'exact')->where('starts_at', '>=', $from)->where('starts_at', '<', $to))
-                ->orWhere(fn (Builder $dated) => $dated->where('time_precision', '!=', 'exact')->whereDate('date', $day->toDateString()))
-                ->orWhere(fn (Builder $long) => $long->whereNotNull('ends_at')->where('starts_at', '<', $to)->where('ends_at', '>=', $from)))
+            ->where(function (Builder $query) use ($onTv, $from, $to, $day): void {
+                if ($onTv) {
+                    $query->whereHas('airings', fn (Builder $airings) => $airings
+                        ->where('starts_at', '<', $to)->where('ends_at', '>', $from)->where('ends_at', '>', CarbonImmutable::now()));
+
+                    return;
+                }
+                $query->where(fn (Builder $exact) => $exact->where('time_precision', 'exact')->where('starts_at', '>=', $from)->where('starts_at', '<', $to))
+                    ->orWhere(fn (Builder $dated) => $dated->where('time_precision', '!=', 'exact')->whereDate('date', $day->toDateString()))
+                    ->orWhere(fn (Builder $long) => $long->whereNotNull('ends_at')->where('starts_at', '<', $to)->where('ends_at', '>=', $from));
+            })
             ->when($sport, fn (Builder $query) => $query->whereHas('competition', fn (Builder $c) => $c->where('sport_id', $sport->id)))
             ->when($category, fn (Builder $query) => $query->whereHas('competition.categories', fn (Builder $c) => $c->whereKey($category->id)))
             ->when($competition, fn (Builder $query) => $query->where('competition_id', $competition->id))
-            ->when($onTv, fn (Builder $query) => self::onTv($query))
+            ->when($onTv, fn (Builder $query) => $query
+                ->withMin(['airings as broadcast_starts_at' => fn (Builder $airings) => $airings
+                    ->where('starts_at', '<', $to)->where('ends_at', '>', $from)->where('ends_at', '>', CarbonImmutable::now())], 'starts_at')
+                ->orderBy('broadcast_starts_at'))
             ->orderByRaw('starts_at is null, starts_at')
             ->orderBy('id');
     }
@@ -99,28 +110,26 @@ final class EventFeed
     public static function nextDay(CarbonImmutable $day, ?Sport $sport = null, ?Category $category = null, bool $onTv = false): ?CarbonImmutable
     {
         [, $to] = self::window($day);
+        if ($onTv) {
+            $next = Airing::query()->where('starts_at', '>=', $to)->where('ends_at', '>', CarbonImmutable::now())
+                // Завершённые события каталог не показывает — и их повторы тоже.
+                ->whereHas('event', fn (Builder $events) => $events->where('publication_state', 'published')->whereNotIn('status', self::HIDDEN)->whereDoesntHave('children')
+                    ->when($sport, fn (Builder $query) => $query->whereHas('competition', fn (Builder $c) => $c->where('sport_id', $sport->id)))
+                    ->when($category, fn (Builder $query) => $query->whereHas('competition.categories', fn (Builder $c) => $c->whereKey($category->id))))
+                ->orderBy('starts_at')->value('starts_at');
+
+            return $next === null ? null : CarbonImmutable::parse($next, 'UTC')->setTimezone(config('sports.timezone'))->startOfDay();
+        }
         $next = self::query()
             ->setEagerLoads([])
             ->whereDoesntHave('children')
             ->where('starts_at', '>=', $to)
             ->when($sport, fn (Builder $query) => $query->whereHas('competition', fn (Builder $c) => $c->where('sport_id', $sport->id)))
             ->when($category, fn (Builder $query) => $query->whereHas('competition.categories', fn (Builder $c) => $c->whereKey($category->id)))
-            ->when($onTv, fn (Builder $query) => self::onTv($query))
             ->orderBy('starts_at')
             ->value('starts_at');
 
         return $next === null ? null : CarbonImmutable::parse($next, 'UTC')->setTimezone(config('sports.timezone'))->startOfDay();
-    }
-
-    /**
-     * Только события с трансляцией, которая ещё не закончилась.
-     *
-     * @param  Builder<Event>  $query
-     * @return Builder<Event>
-     */
-    private static function onTv(Builder $query): Builder
-    {
-        return $query->whereHas('airings', fn (Builder $airings) => $airings->where('ends_at', '>', CarbonImmutable::now()));
     }
 
     /**

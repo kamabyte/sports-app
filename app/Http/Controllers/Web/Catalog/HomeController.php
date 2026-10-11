@@ -28,7 +28,11 @@ class HomeController extends Controller
         [, $to] = EventFeed::window($today->addDays(6));
         $sports = Sport::query()->where('active', true)->orderBy('position')->get();
 
+        $broadcasts = EventFeed::day($today, onTv: true)->get();
+
         return Inertia::render('catalog/home', [
+            'broadcast_groups' => EventGroups::byCompetition($broadcasts->take(8)->values()),
+            'broadcast_count' => $broadcasts->count(),
             'date' => $today->toDateString(),
             'sports' => $sports->map(function (Sport $sport) use ($today, $from, $to) {
                 $week = EventFeed::query()->setEagerLoads([])->whereDoesntHave('children')

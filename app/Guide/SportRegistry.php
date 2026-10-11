@@ -15,11 +15,11 @@ final class SportRegistry
      * @var array<string, array{name: string, emoji: string, color: string, keywords: list<string>}>
      */
     private const array SPORTS = [
-        'football' => ['name' => 'Футбол', 'emoji' => '⚽', 'color' => '#22c55e', 'keywords' => ['футбол', 'labdarúgás', 'futbolas', 'fotbal', 'futbal', 'fudbal', 'nogomet', 'fútbol', 'futbol', 'futebol', 'calcio', 'fußball', 'fussball', 'voetbal', 'piłka nożna', 'football', 'soccer', 'mls', 'nwsl']],
+        'football' => ['name' => 'Футбол', 'emoji' => '⚽', 'color' => '#22c55e', 'keywords' => ['футбол', 'labdarúgás', 'futbolas', 'futbolo', 'fotbal', 'futbal', 'fudbal', 'nogomet', 'fútbol', 'futbol', 'futebol', 'calcio', 'fußball', 'fussball', 'voetbal', 'piłka nożna', 'football', 'soccer', 'mls', 'nwsl']],
         'hockey' => ['name' => 'Хоккей', 'emoji' => '🏒', 'color' => '#38bdf8', 'keywords' => ['хоккей', 'хокей', 'кхл', 'мхл', 'вхл', 'нхл', 'jégkorong', 'ledo ritulys', 'lední hokej', 'ľadový hokej', 'hokej', 'hokej na ledu', 'ice hockey', 'hockey', 'eishockey', 'hockey sur glace', 'hochei', 'nhl', 'chl']],
-        'basketball' => ['name' => 'Баскетбол', 'emoji' => '🏀', 'color' => '#f97316', 'keywords' => ['баскетбол', 'баскетбол 3х3', 'баскетбол 3x3', 'kosárlabda', 'krepšinis', 'basketbal', 'basketball', 'košarka', 'baschet', 'baloncesto', 'básquetbol', 'basquetbol', 'basketbol', 'pallacanestro', 'koszykówka', 'nba', 'wnba', 'euroleague', 'euroliga', 'eurocup']],
+        'basketball' => ['name' => 'Баскетбол', 'emoji' => '🏀', 'color' => '#f97316', 'keywords' => ['баскетбол', 'баскетбол 3х3', 'баскетбол 3x3', 'kosárlabda', 'krepšinis', 'krepšinio', 'basketbal', 'basketball', 'košarka', 'baschet', 'baloncesto', 'básquetbol', 'basquetbol', 'basketbol', 'pallacanestro', 'koszykówka', 'nba', 'wnba', 'euroleague', 'euroliga', 'eurocup']],
         'volleyball' => ['name' => 'Волейбол', 'emoji' => '🏐', 'color' => '#eab308', 'keywords' => ['волейбол', 'пляжный волейбол', 'röplabda', 'volejbal', 'volleyball', 'volei', 'voleibol', 'pallavolo', 'odbojka', 'siatkówka']],
-        'handball' => ['name' => 'Гандбол', 'emoji' => '🤾', 'color' => '#8b5cf6', 'keywords' => ['гандбол', 'kézilabda', 'házená', 'hádzaná', 'handball', 'handbal', 'rukomet', 'balonmano', 'pallamano', 'piłka ręczna']],
+        'handball' => ['name' => 'Гандбол', 'emoji' => '🤾', 'color' => '#8b5cf6', 'keywords' => ['гандбол', 'rankinio', 'kézilabda', 'házená', 'hádzaná', 'handball', 'handbal', 'rukomet', 'balonmano', 'pallamano', 'piłka ręczna']],
         'futsal' => ['name' => 'Футзал', 'emoji' => '🥅', 'color' => '#10b981', 'keywords' => ['футзал', 'мини-футбол', 'futsal']],
         'tennis' => ['name' => 'Теннис', 'emoji' => '🎾', 'color' => '#a3e635', 'keywords' => ['теннис', 'теніс', 'tenisz', 'tenis', 'teniss', 'tenisas', 'tennis', 'atp', 'атр', 'wta']],
         'bandy' => ['name' => 'Хоккей с мячом', 'emoji' => '🏑', 'color' => '#60a5fa', 'keywords' => ['хоккей с мячом']],

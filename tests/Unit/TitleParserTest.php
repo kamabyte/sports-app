@@ -92,6 +92,9 @@ it('parses foreign guides', function (string $title, array $expected): void {
     'hungarian F1 race' => ['Forma 1 - Futam. Szingapúri Nagydíj.', ['sport' => 'motorsport', 'home' => null, 'competition' => 'Forma 1 - Futam']],
     // Setanta Sports 2 и M4 Sport: вида спорта нет ни в названии, ни у канала — соперников ищут везде.
     'no sport word anywhere' => ['⋗ Испания. «Бетис» – «Осасуна»', ['sport' => 'any', 'home' => 'Бетис', 'away' => 'Осасуна', 'live' => true]],
+    // Sport 1 LT, 11.10.2026: литовские «futbolo», «krepšinio», «rankinio» — вид спорта.
+    'lithuanian football' => ['Portugalijos Primeira futbolo lyga. FC Porto - SL Benfica', ['sport' => 'football', 'home' => 'FC Porto', 'away' => 'SL Benfica']],
+    'lithuanian handball' => ['Rankinio čempionų lyga. SC Magdeburg - Industria Kielce', ['sport' => 'handball', 'home' => 'SC Magdeburg']],
     'league name without sport' => ['▶️ OTP Bank Liga. Kispest-Honvéd FC - Újpest FC.', ['sport' => 'any', 'home' => 'Kispest-Honvéd FC', 'away' => 'Újpest FC']],
 ]);
 
@@ -108,8 +111,11 @@ it('skips foreign shows and sports we do not cover', function (string $title): v
     'San Francisco 49ers vs. Seattle Seahawks NFL Football In-Game Live Gameday',
     // Canal+ Sport SK, 11.10.2026: «Zápasové studio» до и после матча.
     'Match Time. Liverpool - Manchester City',
-    // FIFA+: архив, а не трансляция.
-    'Germany v Spain - Semi-finals - 2010 FIFA World Cup South Africa™ - Full Match Replay',
+    // Студии и обзоры (11.10.2026): NBA TV, V Sport, Sport en France, Sky Sports.
+    'NBA Shot Clock: Games of the Night',
+    'NHL On The Fly',
+    'Le Grand Résumé. Marseille - Gap',
+    "The Premier League's Greatest Games. 2015: Manchester City v Liverpool",
     'Lední hokej. Sestřih. Sparta - Kometa',
     'Labdarúgás. Bajnokok Ligája-magazin.',
     'UFC Epic Moments. Jones vs Gustafsson',
@@ -122,4 +128,28 @@ it('does not take F1 H2O powerboats for Formula 1', function (): void {
     $parsed = (new TitleParser)->parse('F1 H2O: Grand Prix Chin');
 
     expect(CompetitionCatalog::match((string) $parsed?->sport, $parsed?->competition))->toBeNull();
+});
+
+it('keeps full match replays as match programmes', function (): void {
+    $parsed = (new TitleParser)->parse('Football. Arsenal vs Chelsea. Full Match Replay');
+    expect($parsed?->home)->toBe('Arsenal')->and($parsed?->away)->toBe('Chelsea')->and($parsed?->replay)->toBeTrue();
+});
+
+it('leaves an archived national-team replay without a sport ambiguous for the matcher', function (): void {
+    $parsed = (new TitleParser)->parse('Germany v Spain - Semi-finals - 2010 FIFA World Cup South Africa™ - Full Match Replay');
+    expect($parsed?->replay)->toBeTrue()->and($parsed?->knowsSport())->toBeFalse();
+});
+
+it('skips archives of old seasons but keeps the current one and club names with years', function (): void {
+    $airsAt = CarbonImmutable::parse('2026-10-11 10:20', 'UTC');
+    $parser = new TitleParser;
+
+    // Dynamo Kyiv TV и Arena Premium 1, 11.10.2026: архив, а не трансляция.
+    expect($parser->parse('Футбол. Чемпіонат України. Сезон 2019/20. Динамо Київ - Олександрія', $airsAt))->toBeNull()
+        ->and($parser->parse('Fudbal - Klasici Premijer lige: Liverpool - Manchester City, 2017/18', $airsAt))->toBeNull()
+        ->and($parser->parse('Футбол. Чемпіонат України. Сезон 2026/27. Динамо Київ - Карпати', $airsAt)?->home)->toBe('Динамо Київ')
+        ->and($parser->parse('⋗ Модена – Верона. Итальянская Серия Б. Сезон 26/27', $airsAt)?->away)->toBe('Верона')
+        ->and($parser->parse('⋗ Футбол. Латвія. Вірсліга. Тукумс 2000 – Рига', $airsAt)?->home)->toBe('Тукумс 2000')
+        // Sky Sports Football: финал 2009 года — архив.
+        ->and($parser->parse('EFL Cup. 2009 Final: Manchester United v Tottenham Hotspur', $airsAt))->toBeNull();
 });

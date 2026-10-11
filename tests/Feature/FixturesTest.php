@@ -45,6 +45,18 @@ it('compares Russian and English team names', function (string $ru, string $en, 
     ['Эльверсберг', 'JS El Biar', 0.0, 0.0],
     // beIN SPORTS XTRA, 12.10.2026: «Paris FC» — другой клуб, город — лишь половина совпадения.
     ['Paris Saint Germain', 'Paris FC', 0.0, 0.5],
+    // Sky Sport Legend IT и Go3 Sport, 11.10.2026: одно похожее слово — полсовпадения.
+    ['Барселона', 'Baskonia', 0.5, 0.5],
+    ['Barcellona 1994', 'Baskonia', 0.5, 0.5],
+    // Sport 2/3 (Israel), 11.10.2026: итальянское «z» по-русски — «ц».
+    ['Лацио', 'Lazio', 1.0, 1.0],
+    ['Монца', 'Monza', 1.0, 1.0],
+    ['Венеция', 'Venezia', 1.0, 1.0],
+    // Eleven Sports PL: польские названия городов.
+    ['FC Bayern Monachium', 'Bayern Munich', 1.0, 1.0],
+    ['RB Lipsk', 'RB Leipzig', 1.0, 1.0],
+    // Sky Sport Uno IT, 11.10.2026.
+    ['Club Bruges', 'Club Brugge KV', 1.0, 1.0],
     // Okko Футбол, 10.10.2026: одни двухбуквенные коды — не совпадение.
     ['Магдебург', 'America MG', 0.0, 0.0],
 ]);

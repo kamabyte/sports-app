@@ -14,9 +14,10 @@ interface AiringTarget
 {
     /**
      * @param  list<array{programme: Programme, channel: Channel, parsed: ParsedTitle}>  $parsed
+     * @param  list<int>|null  $channelIds  channels with successfully loaded guides; null refreshes all
      * @return int сколько показов привязано
      */
-    public function rebuild(CarbonImmutable $from, CarbonImmutable $to, array $parsed): int;
+    public function rebuild(CarbonImmutable $from, CarbonImmutable $to, array $parsed, ?array $channelIds = null): int;
 
     /** Сколько событий с показами, начиная с этого момента. */
     public function eventsWithAirings(CarbonImmutable $from): int;

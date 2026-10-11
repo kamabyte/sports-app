@@ -144,6 +144,18 @@ guide file can be loaded at all.
   57 previously unmapped channels. **Rollback:** restore `epg_data_id` per
   channel from `storage/app/dispatcharr-epg-backup-2026-10-06.json`, then delete
   sources 4–16.
+- **Changes made on 2026-10-11 (TV Team):** M3U account 14 «TV Team» (the
+  owner's paid playlist; its URL holds a token — never print or commit it),
+  `max_streams` 2. Only groups «9. Sport/Спорт» and the country groups 14–37 are
+  enabled. 358 sports channels were created (numbers from 1001, groups «Спорт» /
+  «Спорт — мир», tvg-id like `SkySportsF1.uk`) and TV Team streams were put first
+  on 41 existing channels; event-only and archive feeds were left out. Stream
+  profile 6 «ffmpeg — AAC audio» (video copied, first audio track → AAC stereo:
+  browsers can't play AC-3) is set on those 399 channels — Dispatcharr 0.31 uses
+  the channel's profile, not the account's. **Rollback:** ids in
+  `storage/app/dispatcharr-tvteam-rollback-2026-10-11.json`; full dumps in
+  `~/backups/dispatcharr-2026-10-11-before-tvteam.dump` and
+  `…-before-aac-profile.dump` on the host. Docker on the host needs `sudo`.
 - Rule for future changes: additive and reversible only; back up before; don't
   change admin passwords.
 

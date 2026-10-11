@@ -20,7 +20,11 @@ final class NameSimilarity
         'myunkhen' => 'munich', 'yuventus' => 'juventus', 'siti' => 'city', 'yunayted' => 'united',
         'rim' => 'roma', 'neapol' => 'napoli', 'lissabon' => 'lisbon', 'sportinh' => 'sporting',
         // «ЦСКА» по-английски — CSKA, а не TSSKA.
-        'tsska' => 'cska',
+        'tsska' => 'cska', 'nyukasl' => 'newcastle',
+        // Польские названия городов: «Bayern Monachium», «RB Lipsk», «Inter Mediolan».
+        'monachium' => 'munich', 'lipsk' => 'leipzig', 'mediolan' => 'milan', 'brema' => 'bremen',
+        // Брюгге по-французски и по-итальянски: «Club Bruges».
+        'bruges' => 'brugge',
     ];
 
     /**
@@ -41,6 +45,12 @@ final class NameSimilarity
 
     /** Слова короче — только точное совпадение (с поправкой на звучание). */
     private const int MIN_FUZZY_LENGTH = 5;
+
+    /** Похожие, но не одинаковые слова («Барселона» ~ «Baskonia», 71 %) — только половина совпадения… */
+    private const float FUZZY_WEIGHT = 0.5;
+
+    /** …а очень похожие («Тоттенхэм» ~ «Tottenham», 88 %) — целое. */
+    private const int CLOSE_WORD_SIMILARITY = 85;
 
     /** Слова похожи, если совпадает начало такой длины… */
     private const int PREFIX = 5;
@@ -128,10 +138,30 @@ final class NameSimilarity
         // «Atletico FC» — одни общие слова, а у «Атлетико Мадрид» есть своё:
         // это в лучшем случае половина совпадения.
         if ($distinctive === [] && array_diff($long, self::GENERIC) !== []) {
-            return min(0.5, count($found) / count($short));
+            return min(0.5, self::weight($short, $long));
         }
 
-        return count($found) / count($short);
+        return self::weight($short, $long);
+    }
+
+    /**
+     * Доля слов короткого названия, нашедшихся в длинном. Название из одного
+     * слова, которое только похоже, — половина совпадения: «Барселона» ~
+     * «Baskonia» (71 %) — не одно и то же. В длинных названиях похожее слово
+     * засчитывается целиком: «Иржи Легечка» — «Jiri Lehecka».
+     *
+     * @param  list<string>  $short
+     * @param  list<string>  $long
+     */
+    private static function weight(array $short, array $long): float
+    {
+        $sum = 0.0;
+        foreach ($short as $word) {
+            $score = max([0.0, ...array_map(fn (string $other) => self::wordScore($word, $other), $long)]);
+            $sum += count($short) > 1 && $score > 0.0 ? 1.0 : $score;
+        }
+
+        return $sum / count($short);
     }
 
     /**
@@ -170,31 +200,40 @@ final class NameSimilarity
 
     private static function sameWord(string $a, string $b, bool $abbreviations = true): bool
     {
+        return self::wordScore($a, $b, $abbreviations) > 0.0;
+    }
+
+    /** 1 — то же слово, FUZZY_WEIGHT — только похоже, 0 — разные. */
+    private static function wordScore(string $a, string $b, bool $abbreviations = true): float
+    {
         if ($a === $b) {
-            return true;
+            return 1.0;
         }
 
         $length = min(strlen($a), strlen($b));
         if ($length >= self::PREFIX && strncmp($a, $b, self::PREFIX) === 0) {
-            return true;
+            return 1.0;
         }
 
         if ($abbreviations && (self::abbreviates($a, $b) || self::abbreviates($b, $a))) {
-            return true;
+            return 1.0;
         }
 
         [$left, $right] = [self::phonetic($a), self::phonetic($b)];
         if ($left === $right) {
-            return true;
+            return 1.0;
         }
 
         similar_text($left, $right, $percent);
 
         // Короткие слова — только точно: «СКА» не «ЦСКА», «МХК» не «ХК».
         // Длина тоже должна быть близкой: «niderlandi» и «ireland» похожи буквами, но не звучанием.
-        return $length >= self::MIN_FUZZY_LENGTH
-            && $percent >= self::MIN_WORD_SIMILARITY
-            && abs(strlen($left) - strlen($right)) <= max(2, intdiv(max(strlen($left), strlen($right)), 3));
+        if ($length < self::MIN_FUZZY_LENGTH || $percent < self::MIN_WORD_SIMILARITY
+            || abs(strlen($left) - strlen($right)) > max(2, intdiv(max(strlen($left), strlen($right)), 3))) {
+            return 0.0;
+        }
+
+        return $percent >= self::CLOSE_WORD_SIMILARITY ? 1.0 : self::FUZZY_WEIGHT;
     }
 
     /**
@@ -228,7 +267,7 @@ final class NameSimilarity
      */
     private static function phonetic(string $word): string
     {
-        $word = strtr($word, ['ck' => 'k', 'ph' => 'f', 'kh' => 'h', 'yu' => 'u', 'ya' => 'a', 'ee' => 'i', 'ea' => 'i', 'oo' => 'u', 'ou' => 'u', 'tz' => 'ts', 'x' => 'ks']);
+        $word = strtr($word, ['ck' => 'k', 'ph' => 'f', 'kh' => 'h', 'yu' => 'u', 'ya' => 'a', 'ee' => 'i', 'ea' => 'i', 'oo' => 'u', 'ou' => 'u', 'tz' => 'z', 'ts' => 'z', 'x' => 'ks']);
         $word = strtr($word, ['c' => 'k', 'q' => 'k', 'w' => 'v', 'y' => 'i']);
         $word = (string) preg_replace('/(.)\1+/', '$1', $word);
 
