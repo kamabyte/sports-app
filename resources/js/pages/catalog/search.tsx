@@ -55,7 +55,7 @@ export default function Search({ query, too_short, results }: Props) {
     return (
         <>
             <Head title={query ? `Поиск: ${query}` : 'Поиск'} />
-            <div className="mx-auto flex max-w-4xl flex-col gap-6">
+            <div className="flex max-w-4xl flex-col gap-6">
                 <div>
                     <h1 className="mb-3 font-display text-2xl font-bold">
                         Поиск

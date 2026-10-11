@@ -307,7 +307,7 @@ function Freshness() {
 function Header({ onMenu }: { onMenu: () => void }) {
     return (
         <header className="sticky top-0 z-20 border-b border-border/60 bg-chrome backdrop-blur-xl backdrop-saturate-150">
-            <div className="flex h-14 items-center gap-2 px-3 md:px-6 lg:px-8">
+            <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-3 md:px-6 lg:px-8">
                 <button
                     type="button"
                     onClick={onMenu}
@@ -443,7 +443,7 @@ export default function CatalogLayout({ children }: { children: ReactNode }) {
                 <main
                     aria-busy={navigating}
                     className={cn(
-                        'px-3 pt-4 pb-28 transition-opacity md:px-6 md:pb-12 lg:px-8',
+                        'mx-auto max-w-6xl px-3 pt-4 pb-28 transition-opacity md:px-6 md:pb-12 lg:px-8',
                         navigating && 'opacity-60',
                     )}
                 >

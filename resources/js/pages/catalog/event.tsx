@@ -178,7 +178,7 @@ export default function EventPage({
     return (
         <>
             <Head title={`${title} · ${event.competition.name}`} />
-            <div className="mx-auto max-w-4xl">
+            <div className="max-w-4xl">
                 <Crumbs items={crumbs} />
 
                 <header className="mb-4 rounded-xl border border-border/70 bg-card p-4 sm:p-6">

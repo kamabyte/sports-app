@@ -58,7 +58,7 @@ export default function AthletePage({
     return (
         <>
             <Head title={`${athlete.name}${sport ? ` — ${sport.name}` : ''}`} />
-            <div className="mx-auto max-w-5xl">
+            <div>
                 <Crumbs items={crumbs} />
                 <header className="mb-4 flex items-center gap-4 rounded-xl border border-border/70 bg-card p-4">
                     {athlete.portrait ? (

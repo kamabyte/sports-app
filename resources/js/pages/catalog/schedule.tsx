@@ -52,7 +52,7 @@ export default function Schedule({
     return (
         <>
             <Head title={`Расписание: ${formatDay(filters.date, timezone)}`} />
-            <div className="mx-auto flex max-w-5xl flex-col gap-4">
+            <div className="flex flex-col gap-4">
                 <header>
                     <h1 className="font-display text-2xl font-bold md:text-3xl">
                         Расписание

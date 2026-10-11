@@ -39,7 +39,7 @@ export default function Home({
     return (
         <>
             <Head title="Расписание событий" />
-            <div className="mx-auto flex max-w-5xl flex-col gap-8">
+            <div className="flex flex-col gap-8">
                 <header>
                     <h1 className="font-display text-2xl font-bold md:text-3xl">
                         Ближайшие события
