@@ -30,21 +30,21 @@ containers); stream links still use `DISPATCHARR_URL`.
 
 ## Configuration (`.env`, `config/sports.php`)
 
-| Variable                                                                                        | Default                     | Meaning                                                |
-| ----------------------------------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------ |
-| `SPORTS_SOURCE`                                                                                 | `dispatcharr`               | `fake` = generated catalog (tests, demos)              |
-| `SPORTS_TIMEZONE`                                                                               | `Europe/Moscow`             | how days are split and times shown                     |
-| `DISPATCHARR_URL`                                                                               | `http://iptv.home.internal` | Dispatcharr base URL (stream links for the browser)    |
-| `DISPATCHARR_API_URL`                                                                           | —                           | server-side API address when `DISPATCHARR_URL` is closed to the app (Docker) |
-| `DISPATCHARR_USERNAME` / `_PASSWORD`                                                            | —                           | Xtream (XC) login; **only in `.env`**, never committed |
-| `DISPATCHARR_NAME`                                                                              | `Dispatcharr`               | provider label on broadcasts                           |
-| `GUIDES_REFRESH_HOURS`                                                                          | `12`                        | how often XMLTV files are re-downloaded                |
-| `GUIDES_DAYS_AHEAD`                                                                             | `7`                         | how far ahead guide programmes are read                |
-| `FIXTURES_DAYS_BACK` / `FIXTURES_DAYS_AHEAD`                                                    | `0` / `6`                   | schedule window                                        |
-| `ESPN_ENABLED`, `KHL_ENABLED`, `EUROLEAGUE_ENABLED`, `LIVESCORE_ENABLED`, `THESPORTSDB_ENABLED` | `true`                      | toggle schedule sources                                |
-| `THESPORTSDB_KEY` / `_PAUSE_SECONDS` / `_DAYS_AHEAD`                                            | `123` / `21` / `1`          | free key limits                                        |
-| `IBU_ENABLED`                                                                                   | `true`                      | biathlon (IBU results API)                             |
-| `FLASHSCORE_ENABLED`                                                                            | **`false`**                 | Flashscore lite HTML source, owner's decision (see below) |
+| Variable                                                                                        | Default                           | Meaning                                                                              |
+| ----------------------------------------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------ |
+| `SPORTS_SOURCE`                                                                                 | `dispatcharr`                     | `fake` = generated catalog (tests, demos)                                            |
+| `SPORTS_TIMEZONE`                                                                               | `Europe/Moscow`                   | how days are split and times shown                                                   |
+| `DISPATCHARR_URL`                                                                               | `http://iptv.home.internal`       | Dispatcharr base URL (stream links for the browser)                                  |
+| `DISPATCHARR_API_URL`                                                                           | —                                 | server-side API address when `DISPATCHARR_URL` is closed to the app (Docker)         |
+| `DISPATCHARR_USERNAME` / `_PASSWORD`                                                            | —                                 | Xtream (XC) login; **only in `.env`**, never committed                               |
+| `DISPATCHARR_NAME`                                                                              | `Dispatcharr`                     | provider label on broadcasts                                                         |
+| `GUIDES_REFRESH_HOURS`                                                                          | `12`                              | how often XMLTV files are re-downloaded                                              |
+| `GUIDES_DAYS_AHEAD`                                                                             | `7`                               | how far ahead guide programmes are read                                              |
+| `FIXTURES_DAYS_BACK` / `FIXTURES_DAYS_AHEAD`                                                    | `0` / `6`                         | schedule window                                                                      |
+| `ESPN_ENABLED`, `KHL_ENABLED`, `EUROLEAGUE_ENABLED`, `LIVESCORE_ENABLED`, `THESPORTSDB_ENABLED` | `true`                            | toggle schedule sources                                                              |
+| `THESPORTSDB_KEY` / `_PAUSE_SECONDS` / `_DAYS_AHEAD`                                            | `123` / `21` / `1`                | free key limits                                                                      |
+| `IBU_ENABLED`                                                                                   | `true`                            | biathlon (IBU results API)                                                           |
+| `FLASHSCORE_ENABLED`                                                                            | **`false`**                       | Flashscore lite HTML source, owner's decision (see below)                            |
 | `FLASHSCORE_TIMEZONE` / `_PAUSE_SECONDS` / `_CACHE_HOURS` / `_DAYS_AHEAD`                       | `Europe/Prague` / `2` / `6` / `6` | site time zone, pause between pages, cache for pages after tomorrow, horizon (max 6) |
 
 Lists that are not env variables live in `config/sports.php`: ESPN leagues,
@@ -128,17 +128,17 @@ guide file can be loaded at all.
 
 ## Troubleshooting
 
-| Symptom                               | Check                                                                                                                                                                                                              |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| A match is on TV but not in the app   | Is it in the schedule? `fixtures` table / `fixtures:import`. Does the channel have a guide? `channels.guide_source`. Does `TitleParser` understand the title? Try it in `php artisan tinker`.                      |
-| Channel linked to the wrong guide     | Add `'Channel name' => 'source:guide-id'` (or `null`) to `sports.guides.channels`.                                                                                                                                 |
-| Broadcast attached to the wrong match | Name similarity: add an exonym/generic word in `NameSimilarity`, add a dataset row to `FixturesTest` / `MatchingTest`. Wrong team aliases may need a rebuild (delete `teams`/`team_aliases`, re-run both imports). |
-| Studio show shown as a match          | Add the word to `TitleParser::SHOWS`.                                                                                                                                                                              |
-| Player stalls                         | Keep mpegts.js settings in `live-player.tsx` (no latency chasing).                                                                                                                                                 |
-| Logos missing                         | `storage:link`, then `logos:sync`; failures retry after 24 h (`logo_failed_at`).                                                                                                                                   |
-| `flashscore: … no schedule on the page` | A challenge, an error page or a new layout. Do not work around a challenge. Check a page by hand; if the layout changed, update the parser and the fixtures in `tests/Fixtures/sources/flashscore`. |
-| `flashscore: … rate limited`          | A 429 was received; the source waits for `Retry-After`. Raise `FLASHSCORE_PAUSE_SECONDS` or `FLASHSCORE_CACHE_HOURS`. |
-| Few channels have a guide             | Most "Спорт — мир" channels have no public guide at all. New file → add to `guides.sources`.                                                                                                                       |
+| Symptom                                 | Check                                                                                                                                                                                                              |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| A match is on TV but not in the app     | Is it in the schedule? `fixtures` table / `fixtures:import`. Does the channel have a guide? `channels.guide_source`. Does `TitleParser` understand the title? Try it in `php artisan tinker`.                      |
+| Channel linked to the wrong guide       | Add `'Channel name' => 'source:guide-id'` (or `null`) to `sports.guides.channels`.                                                                                                                                 |
+| Broadcast attached to the wrong match   | Name similarity: add an exonym/generic word in `NameSimilarity`, add a dataset row to `FixturesTest` / `MatchingTest`. Wrong team aliases may need a rebuild (delete `teams`/`team_aliases`, re-run both imports). |
+| Studio show shown as a match            | Add the word to `TitleParser::SHOWS`.                                                                                                                                                                              |
+| Player stalls                           | Keep mpegts.js settings in `live-player.tsx` (no latency chasing).                                                                                                                                                 |
+| Logos missing                           | `storage:link`, then `logos:sync`; failures retry after 24 h (`logo_failed_at`).                                                                                                                                   |
+| `flashscore: … no schedule on the page` | A challenge, an error page or a new layout. Do not work around a challenge. Check a page by hand; if the layout changed, update the parser and the fixtures in `tests/Fixtures/sources/flashscore`.                |
+| `flashscore: … rate limited`            | A 429 was received; the source waits for `Retry-After`. Raise `FLASHSCORE_PAUSE_SECONDS` or `FLASHSCORE_CACHE_HOURS`.                                                                                              |
+| Few channels have a guide               | Most "Спорт — мир" channels have no public guide at all. New file → add to `guides.sources`.                                                                                                                       |
 
 ## Homelab Dispatcharr
 
@@ -206,11 +206,10 @@ Tests never hit the network: `fakeDispatcharr()` / `fakeGuide()` in
   `catalog_import_runs`, `catalog_observations`, `catalog_coverage`.
 - `php artisan catalog:discover` — page registry from the public sitemap
   (weekly, Monday 04:30). Without `--sport`/`--page`, `catalog:import` is a
-  *planned* run: day lists (today, tomorrow) + up to `FLASHSCORE_PAGES_PER_RUN`
+  _planned_ run: day lists (today, tomorrow) + up to `FLASHSCORE_PAGES_PER_RUN`
   competition pages; `FLASHSCORE_LITE_ENABLED=false` turns the day lists off.
 - Rollback: `SPORTS_MODE=iptv` (no data changes needed); the catalog
   migrations are additive (`migrate:rollback --step=6` drops only `catalog_*`;
   `--step=1` drops just `catalog_airings`). Pre-IPTV backup:
   `database/backups/database-2026-10-11-before-iptv.sqlite`.
   Pre-catalog backup: `database/backups/database-2026-10-07-before-catalog.sqlite`.
-

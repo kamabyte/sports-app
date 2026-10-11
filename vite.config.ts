@@ -62,6 +62,8 @@ export default defineConfig({
             'composer.json',
             'resources/js/components/ui/*',
             'resources/views/mail/*',
+            // Снимки реальных страниц и ответов API — как есть.
+            'tests/Fixtures/**',
         ],
         sortTailwindcss: {
             functions: ['clsx', 'cn', 'cva'],

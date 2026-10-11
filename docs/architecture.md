@@ -56,20 +56,20 @@ flowchart LR
   source is deleted; history older than 14 days is pruned.
 - **Events without opponents** (an F1 session, a biathlon race) have no
   `home`/`away` and carry `fixtures.title` instead (`Gulf Air Bahrain Grand
-  Prix`, `Спринт · Мужчины`). They are never merged with anything.
+Prix`, `Спринт · Мужчины`). They are never merged with anything.
 - Individual sports map onto home/away: a tennis match is two players; a UFC
   card is **one** event whose sides are the main-event fighters and whose start
   is the main card (that is how guides name and air it).
 
-| Source              | Sports                                                     | Notes                                                               |
-| ------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------- |
-| `KhlSource`         | KHL                                                        | mobile API, Russian names, logos                                    |
-| `EspnSource`        | football (RPL, top-5, UEFA cups, Nations League), NHL, NBA; ATP/WTA singles, UFC cards, F1 sessions | unofficial, keyless; competition logos; tennis payload is a whole tournament, filtered by day |
-| `EuroleagueSource`  | Euroleague, EuroCup                                        | whole season in one request                                         |
-| `IbuSource`         | biathlon: World Cup, World Championships                   | official open results API; season and stage lists cached per run    |
-| `LiveScoreSource`   | hundreds of football, hockey, basketball leagues           | unofficial, personal use; ids are `sport:Eid`                       |
-| `TheSportsDbSource` | volleyball, handball, rugby                                | free key `123`: 3 matches per sport per day, ~3 requests per minute |
-| `FlashscoreSource`  | handball, volleyball, rugby, futsal, bandy, water polo     | lite HTML, **off by default** (site terms); Prague time; partial failures are warnings (`ReportsDiagnostics`) |
+| Source              | Sports                                                                                              | Notes                                                                                                         |
+| ------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `KhlSource`         | KHL                                                                                                 | mobile API, Russian names, logos                                                                              |
+| `EspnSource`        | football (RPL, top-5, UEFA cups, Nations League), NHL, NBA; ATP/WTA singles, UFC cards, F1 sessions | unofficial, keyless; competition logos; tennis payload is a whole tournament, filtered by day                 |
+| `EuroleagueSource`  | Euroleague, EuroCup                                                                                 | whole season in one request                                                                                   |
+| `IbuSource`         | biathlon: World Cup, World Championships                                                            | official open results API; season and stage lists cached per run                                              |
+| `LiveScoreSource`   | hundreds of football, hockey, basketball leagues                                                    | unofficial, personal use; ids are `sport:Eid`                                                                 |
+| `TheSportsDbSource` | volleyball, handball, rugby                                                                         | free key `123`: 3 matches per sport per day, ~3 requests per minute                                           |
+| `FlashscoreSource`  | handball, volleyball, rugby, futsal, bandy, water polo                                              | lite HTML, **off by default** (site terms); Prague time; partial failures are warnings (`ReportsDiagnostics`) |
 
 `FlashscoreSource` (handball, volleyball, rugby, futsal, bandy, water polo) is
 **disabled by default**. It reads the public lite HTML of www.flashscore.mobi:
@@ -125,7 +125,7 @@ XMLTV is not used.**
       names only exact so `СКА` ≠ `ЦСКА`); live if the programme starts within
       ±45 min of kick-off (score ≥ 1.0), replay if later within 14 days (score ≥ 1.5);
     - without teams (`Чемпионат КХЛ`, `UFC 333`, `Формула-1. Гран-при
-      Бахрейна. Гонка`): the single event of that catalog competition starting
+Бахрейна. Гонка`): the single event of that catalog competition starting
       −15/+45 min from the slot — any event for team sports and UFC
       (`SportRegistry::isOneEventPerSlot`), otherwise only events without
       opponents. A tennis tournament slot (`ATP1000: Shanghai Masters`) covers

@@ -46,18 +46,18 @@ Read the current `README.md`, `docs/architecture.md`, `docs/operations.md`, and 
 
 Relevant integration points:
 
-| File | Purpose |
-| --- | --- |
-| `app/Guide/Fixtures/FixtureSource.php` | Source contract: UTC day to a list of `FixtureData` |
-| `app/Guide/Fixtures/FixtureData.php` | Normalized data shape |
-| `app/Guide/Fixtures/FixtureImporter.php` | Imports each enabled source/day and upserts fixtures |
-| `app/Providers/AppServiceProvider.php` | `fixtureSources()` registration and importer construction |
-| `config/sports.php` | Enable flag, sports mapping and source options |
-| `app/Guide/Matches/MatchBuilder.php` | Source priority and deduplication |
-| `app/Guide/Matches/AiringMatcher.php` | Matches guide programmes to events |
-| `app/Guide/SportRegistry.php` | Sport keys and recognition |
-| `app/Guide/Listings/TitleParser.php` | Guide-title parsing |
-| `tests/Feature/FixtureSourcesTest.php` | Existing HTTP-faked source tests |
+| File                                     | Purpose                                                   |
+| ---------------------------------------- | --------------------------------------------------------- |
+| `app/Guide/Fixtures/FixtureSource.php`   | Source contract: UTC day to a list of `FixtureData`       |
+| `app/Guide/Fixtures/FixtureData.php`     | Normalized data shape                                     |
+| `app/Guide/Fixtures/FixtureImporter.php` | Imports each enabled source/day and upserts fixtures      |
+| `app/Providers/AppServiceProvider.php`   | `fixtureSources()` registration and importer construction |
+| `config/sports.php`                      | Enable flag, sports mapping and source options            |
+| `app/Guide/Matches/MatchBuilder.php`     | Source priority and deduplication                         |
+| `app/Guide/Matches/AiringMatcher.php`    | Matches guide programmes to events                        |
+| `app/Guide/SportRegistry.php`            | Sport keys and recognition                                |
+| `app/Guide/Listings/TitleParser.php`     | Guide-title parsing                                       |
+| `tests/Feature/FixtureSourcesTest.php`   | Existing HTTP-faked source tests                          |
 
 ## 1. Verify the source contract with a small sample
 
