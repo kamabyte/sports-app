@@ -102,12 +102,13 @@ it('normalizes names for search without mixing up scripts', function () {
         ->and(Names::normalize('Йокерит'))->toBe('йокерит');
 });
 
-it('makes no IPTV or legacy source requests in standalone mode', function () {
+it('makes no legacy schedule or logo requests in standalone mode', function () {
+    // Телегиды и Dispatcharr в каталоге работают (CatalogBroadcastsTest), прежние источники расписания — нет.
     config(['sports.mode' => 'standalone', 'sports.fixtures.sources.espn.enabled' => true, 'sports.fixtures.sources.livescore.enabled' => true]);
     Http::preventStrayRequests();
     Http::fake();
 
-    foreach (['fixtures:import', 'guide:import', 'logos:sync'] as $command) {
+    foreach (['fixtures:import', 'logos:sync'] as $command) {
         expect(Artisan::call($command))->toBe(0);
     }
 

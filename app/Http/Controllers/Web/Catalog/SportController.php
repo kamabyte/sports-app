@@ -43,7 +43,7 @@ class SportController extends Controller
             ? Competition::query()->with(['names' => Display::names()])->where('sport_id', $sport->id)->find($request->competitionId())
             : null;
 
-        $events = EventFeed::day($day, $sport, $category, $competition)->get();
+        $events = EventFeed::day($day, $sport, $category, $competition, $request->onTv())->get();
 
         return Inertia::render('catalog/sport', [
             'sport' => $this->sportProps($sport),
@@ -51,9 +51,10 @@ class SportController extends Controller
                 'date' => $day->toDateString(),
                 'category' => $category !== null ? ['key' => $category->key, 'name' => Display::name($category)] : null,
                 'competition' => $competition !== null ? ['id' => $competition->id, 'name' => Display::name($competition)] : null,
+                'tv' => $request->onTv(),
             ],
             'groups' => EventGroups::byCompetition($events),
-            'next_date' => $events->isEmpty() ? EventFeed::nextDay($day, $sport, $category)?->toDateString() : null,
+            'next_date' => $events->isEmpty() ? EventFeed::nextDay($day, $sport, $category, $request->onTv())?->toDateString() : null,
             'panel' => SportPanel::for($sport),
         ]);
     }

@@ -1,18 +1,26 @@
 import { Head, Link } from '@inertiajs/react';
-import { CalendarClock, MapPin, Users } from 'lucide-react';
+import { CalendarClock, MapPin, Play, Tv, Users } from 'lucide-react';
+import {
+    BroadcastList,
+    ReplayList,
+    splitBroadcasts,
+} from '@/components/broadcast-list';
 import { Crest, Flag } from '@/components/catalog/crest';
 import { Crumbs } from '@/components/catalog/crumbs';
 import { EventRow, ParticipantName } from '@/components/catalog/event-row';
 import { Badge, Notice } from '@/components/catalog/states';
+import { useNow } from '@/hooks/use-now';
 import { useTimezone } from '@/hooks/use-timezone';
 import {
     eventDay,
     eventTime,
+    eventTitle,
     formatLongDate,
     isLive,
     zoneLabel,
 } from '@/lib/catalog';
 import { cn } from '@/lib/utils';
+import type { Broadcast } from '@/types';
 import type {
     Crumb,
     EventDetail,
@@ -23,6 +31,8 @@ import type {
 
 interface Props {
     event: EventDetail;
+    /** Ещё не закончившиеся показы: сначала во время события, потом повторы. */
+    broadcasts: Broadcast[];
     crumbs: Crumb[];
     related: EventItem[];
     related_title: string;
@@ -154,6 +164,7 @@ function EntrantName({ participant }: { participant: Participant }) {
  */
 export default function EventPage({
     event,
+    broadcasts,
     crumbs,
     related,
     related_title,
@@ -162,18 +173,15 @@ export default function EventPage({
     const day = eventDay(event, timezone);
     const time = eventTime(event, timezone);
     const live = isLive(event);
-    const title = event.sides
-        ? event.sides
-              .map(
-                  (side) =>
-                      side.participant?.name ?? side.label ?? 'Уточняется',
-              )
-              .join(' — ')
-        : (event.name ?? event.competition.name);
+    const title = eventTitle(event);
     const notice = {
         postponed: 'Событие перенесено — новое время пока не объявлено.',
         cancelled: 'Событие отменено.',
     }[event.status as string];
+    const now = useNow();
+    const { playable, replays } = splitBroadcasts(broadcasts, now);
+    const watchUrl = (broadcast: Broadcast) =>
+        `/event/${event.id}/watch/${broadcast.id}`;
 
     return (
         <>
@@ -268,7 +276,53 @@ export default function EventPage({
                             {notice}
                         </Notice>
                     )}
+                    {playable.length > 0 && (
+                        <Link
+                            href={watchUrl(playable[0])}
+                            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-[14px] font-semibold text-background hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                        >
+                            <Play className="size-4 fill-current" aria-hidden />
+                            Смотреть · {playable[0].channel}
+                        </Link>
+                    )}
                 </header>
+
+                <section
+                    className="mb-4 overflow-hidden rounded-xl border border-border/70 bg-card"
+                    aria-labelledby="broadcasts"
+                >
+                    <h2
+                        id="broadcasts"
+                        className="flex items-center gap-2 border-b border-border/60 px-4 py-2 text-[13px] font-semibold"
+                    >
+                        <Tv className="size-3.5" aria-hidden />
+                        Трансляции
+                    </h2>
+                    {playable.length > 0 || replays.length > 0 ? (
+                        <div className="flex flex-col gap-3 p-3">
+                            {playable.length > 0 && (
+                                <BroadcastList
+                                    eventId={event.id}
+                                    broadcasts={playable}
+                                    href={watchUrl}
+                                />
+                            )}
+                            {replays.length > 0 && (
+                                <div className="flex flex-col gap-2">
+                                    <h3 className="text-[12px] font-medium text-muted-foreground">
+                                        Повторы
+                                    </h3>
+                                    <ReplayList broadcasts={replays} />
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <p className="px-4 py-3 text-[13px] text-muted-foreground">
+                            В телегидах наших каналов этого события пока нет.
+                            Телегиды обновляются каждые полчаса.
+                        </p>
+                    )}
+                </section>
 
                 <div className="flex flex-col gap-4">
                     {event.siblings.length > 1 && (

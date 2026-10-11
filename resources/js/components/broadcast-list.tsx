@@ -159,11 +159,14 @@ export function BroadcastList({
     broadcasts,
     activeId,
     compact = false,
+    href = (broadcast) => `/events/${eventId}/watch/${broadcast.id}`,
 }: {
-    eventId: string;
+    eventId: string | number;
     broadcasts: Broadcast[];
     activeId?: number;
     compact?: boolean;
+    /** Адрес просмотра трансляции (каталог и прежнее приложение — разные). */
+    href?: (broadcast: Broadcast) => string;
 }) {
     return (
         <div className="flex flex-col gap-2">
@@ -182,7 +185,7 @@ export function BroadcastList({
                 return (
                     <Link
                         key={broadcast.id}
-                        href={`/events/${eventId}/watch/${broadcast.id}`}
+                        href={href(broadcast)}
                         preserveScroll
                         aria-current={active ? 'true' : undefined}
                         className={cn(

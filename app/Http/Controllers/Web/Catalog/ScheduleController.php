@@ -31,7 +31,7 @@ class ScheduleController extends Controller
             ? Competition::query()->with(['names' => Display::names()])->where('sport_id', $sport->id)->find($request->competitionId())
             : null;
 
-        $events = EventFeed::day($day, $sport, $category, $competition)->get();
+        $events = EventFeed::day($day, $sport, $category, $competition, $request->onTv())->get();
 
         return Inertia::render('catalog/schedule', [
             'filters' => [
@@ -39,10 +39,11 @@ class ScheduleController extends Controller
                 'sport' => $sport?->key,
                 'category' => $category !== null ? ['key' => $category->key, 'name' => Display::name($category)] : null,
                 'competition' => $competition !== null ? ['id' => $competition->id, 'name' => Display::name($competition)] : null,
+                'tv' => $request->onTv(),
             ],
             'sports' => Sport::query()->where('active', true)->orderBy('position')->get()->map(fn (Sport $item) => ['key' => $item->key, 'name' => $item->name])->all(),
             'groups' => EventGroups::byCompetition($events),
-            'next_date' => $events->isEmpty() ? EventFeed::nextDay($day, $sport, $category)?->toDateString() : null,
+            'next_date' => $events->isEmpty() ? EventFeed::nextDay($day, $sport, $category, $request->onTv())?->toDateString() : null,
         ]);
     }
 }

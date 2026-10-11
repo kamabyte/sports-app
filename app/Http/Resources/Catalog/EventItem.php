@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * Строка события в расписании: время, участники, турнир. Очная встреча —
+ * Строка события в расписании: время, участники, турнир, отметка «по ТВ». Очная встреча —
  * две стороны; гонка или турнир — название и число участников. Счёта нет:
  * каталог показывает расписание. Неизвестный участник — «Уточняется», имя
  * из дневного списка — без ссылки (профиля пока нет).
@@ -48,6 +48,8 @@ class EventItem extends JsonResource
             'competition' => CompetitionItem::make($competition)->resolve(),
             'sides' => $headToHead ? $this->sides() : null,
             'entrants' => $headToHead ? null : $this->entries_count ?? $this->entries->count(),
+            // Есть трансляция, которая ещё не закончилась. Каналов и потоков в списках нет.
+            'on_tv' => (bool) ($this->on_tv ?? false),
         ];
     }
 

@@ -24,8 +24,21 @@ final class TeamMatch
      */
     public static function score(string $home, string $away, ?Team $homeTeam, ?Team $awayTeam, string $matchHome, string $matchAway): array
     {
-        $direct = self::pair($home, $away, $homeTeam, $awayTeam, $matchHome, $matchAway);
-        $swapped = self::pair($home, $away, $awayTeam, $homeTeam, $matchAway, $matchHome) * self::SWAPPED_PENALTY;
+        return self::byNames($home, $away, self::names($homeTeam, $matchHome), self::names($awayTeam, $matchAway));
+    }
+
+    /**
+     * То же по спискам написаний сторон: каталог даёт их сам (названия на
+     * разных языках, сокращения, спортсмены пары).
+     *
+     * @param  list<string>  $homeNames
+     * @param  list<string>  $awayNames
+     * @return array{score: float, swapped: bool}
+     */
+    public static function byNames(string $home, string $away, array $homeNames, array $awayNames): array
+    {
+        $direct = self::pair($home, $away, $homeNames, $awayNames);
+        $swapped = self::pair($home, $away, $awayNames, $homeNames) * self::SWAPPED_PENALTY;
 
         return ['score' => max($direct, $swapped), 'swapped' => $swapped > $direct];
     }
@@ -38,18 +51,34 @@ final class TeamMatch
         return TeamCategory::of($left) === TeamCategory::of($right);
     }
 
-    private static function pair(string $home, string $away, ?Team $homeTeam, ?Team $awayTeam, string $matchHome, string $matchAway): float
+    /**
+     * @param  list<string>  $homeNames
+     * @param  list<string>  $awayNames
+     */
+    private static function pair(string $home, string $away, array $homeNames, array $awayNames): float
     {
-        $homeScore = self::team($home, $homeTeam, $matchHome);
-        $awayScore = self::team($away, $awayTeam, $matchAway);
+        $homeScore = self::best($home, $homeNames);
+        $awayScore = self::best($away, $awayNames);
 
         return $homeScore < self::MIN_TEAM_SCORE || $awayScore < self::MIN_TEAM_SCORE ? 0.0 : $homeScore + $awayScore;
     }
 
     /**
-     * Лучшее совпадение с любым написанием команды.
+     * Лучшее совпадение с любым написанием стороны.
+     *
+     * @param  list<string>  $names
      */
-    private static function team(string $name, ?Team $team, string $fallback): float
+    private static function best(string $name, array $names): float
+    {
+        return $names === [] ? 0.0 : max(array_map(fn (string $known) => NameSimilarity::score($name, $known), $names));
+    }
+
+    /**
+     * Все написания команды из реестра.
+     *
+     * @return list<string>
+     */
+    private static function names(?Team $team, string $fallback): array
     {
         $names = [$fallback];
         if ($team !== null) {
@@ -62,6 +91,6 @@ final class TeamMatch
             }
         }
 
-        return max(array_map(fn (string $known) => NameSimilarity::score($name, $known), $names));
+        return $names;
     }
 }

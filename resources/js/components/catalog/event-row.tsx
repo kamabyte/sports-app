@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import { Tv } from 'lucide-react';
 import { Crest, Flag } from '@/components/catalog/crest';
 import { useTimezone } from '@/hooks/use-timezone';
 import {
@@ -156,8 +157,9 @@ function SideLine({ side }: { side: Side }) {
 }
 
 /**
- * Строка расписания: время слева, участники — каждый на своей строке.
- * Гонка или турнир без сторон — название и число участников.
+ * Строка расписания: время слева, участники — каждый на своей строке,
+ * справа — отметка «по ТВ». Гонка или турнир без сторон — название и число
+ * участников.
  */
 export function EventRow({
     event,
@@ -213,6 +215,23 @@ export function EventRow({
                     </div>
                 )}
             </div>
+            {event.on_tv && <TvMark />}
         </Link>
+    );
+}
+
+/** «По ТВ»: у события есть трансляция (прямой эфир или повтор впереди). */
+export function TvMark({ className }: { className?: string }) {
+    return (
+        <span
+            className={cn(
+                'flex shrink-0 items-center self-center text-brand',
+                className,
+            )}
+            title="Есть трансляция"
+        >
+            <Tv className="size-4" aria-hidden />
+            <span className="sr-only">Есть трансляция</span>
+        </span>
     );
 }

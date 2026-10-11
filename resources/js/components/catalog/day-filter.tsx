@@ -4,6 +4,7 @@ import {
     ChevronLeft,
     ChevronRight,
     RotateCcw,
+    Tv,
     X,
 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
@@ -48,19 +49,23 @@ const DAYS = 8;
 /**
  * Выбор дня расписания: полоса «сегодня + неделя», переход дальше и
  * календарь. Прошедших дней нет — каталог показывает расписание. Фильтры
- * раздела/турнира снимаются крестиком; всё хранится в адресе.
+ * раздела/турнира снимаются крестиком, «С трансляцией» — переключатель;
+ * всё хранится в адресе.
  */
 export function DayFilter({
     path,
     date,
     extra = {},
     chips = [],
+    tv,
 }: {
     path: string;
     date: string;
     /** Прочие параметры адреса (раздел, турнир, вид спорта) — сохраняются при смене дня. */
     extra?: Record<string, string | number | null | undefined>;
     chips?: FilterChip[];
+    /** Переключатель «С трансляцией» (параметр tv); не задан — переключателя нет. */
+    tv?: boolean;
 }) {
     const timezone = useTimezone();
     const today = todayKey(timezone);
@@ -181,8 +186,25 @@ export function DayFilter({
                 </label>
             </div>
 
-            {(chips.length > 0 || date !== today) && (
+            {(chips.length > 0 || date !== today || tv !== undefined) && (
                 <div className="flex flex-wrap items-center gap-2">
+                    {tv !== undefined && (
+                        <button
+                            type="button"
+                            aria-pressed={tv}
+                            onClick={() =>
+                                visit(path, params({ tv: tv ? null : 1 }))
+                            }
+                            className={cn(
+                                'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[13px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+                                tv
+                                    ? 'border-foreground bg-foreground text-background'
+                                    : 'border-border bg-card hover:bg-accent',
+                            )}
+                        >
+                            <Tv className="size-3.5" aria-hidden />С трансляцией
+                        </button>
+                    )}
                     {chips.map((chip) => (
                         <button
                             key={chip.label}
@@ -195,23 +217,25 @@ export function DayFilter({
                             <X className="size-3.5 text-muted-foreground" />
                         </button>
                     ))}
-                    <button
-                        type="button"
-                        onClick={() =>
-                            visit(
-                                path,
-                                Object.fromEntries(
-                                    Object.keys(extra)
-                                        .filter((key) => key !== 'sport')
-                                        .map((key) => [key, null]),
-                                ),
-                            )
-                        }
-                        className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[13px] text-muted-foreground hover:text-foreground"
-                    >
-                        <RotateCcw className="size-3.5" />
-                        Сегодня, без фильтров
-                    </button>
+                    {(chips.length > 0 || date !== today || tv) && (
+                        <button
+                            type="button"
+                            onClick={() =>
+                                visit(
+                                    path,
+                                    Object.fromEntries(
+                                        Object.keys(extra)
+                                            .filter((key) => key !== 'sport')
+                                            .map((key) => [key, null]),
+                                    ),
+                                )
+                            }
+                            className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[13px] text-muted-foreground hover:text-foreground"
+                        >
+                            <RotateCcw className="size-3.5" />
+                            Сегодня, без фильтров
+                        </button>
+                    )}
                 </div>
             )}
         </div>

@@ -19,6 +19,7 @@ interface Props {
         sport: string | null;
         category: { key: string; name: string } | null;
         competition: { id: number; name: string } | null;
+        tv: boolean;
     };
     sports: { key: string; name: string }[];
     groups: EventGroup[];
@@ -40,6 +41,7 @@ export default function Schedule({
         sport: filters.sport,
         category: filters.category?.key ?? null,
         competition: filters.competition?.id ?? null,
+        tv: filters.tv ? 1 : null,
     };
     const selectSport = (sport: string | null) =>
         visit('/schedule', {
@@ -47,6 +49,7 @@ export default function Schedule({
             sport,
             category: null,
             competition: null,
+            tv: extra.tv,
         });
 
     return (
@@ -111,6 +114,7 @@ export default function Schedule({
                     date={filters.date}
                     extra={extra}
                     chips={filterChips(filters.category, filters.competition)}
+                    tv={filters.tv}
                 />
 
                 {groups.length > 0 ? (
@@ -118,7 +122,7 @@ export default function Schedule({
                 ) : (
                     <Empty
                         icon={CalendarX2}
-                        title={`${formatDay(filters.date, timezone)}: событий нет`}
+                        title={`${formatDay(filters.date, timezone)}: ${filters.tv ? 'трансляций' : 'событий'} нет`}
                         action={
                             next_date && (
                                 <Link

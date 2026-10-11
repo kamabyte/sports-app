@@ -8,9 +8,15 @@ use App\Console\Commands\SyncLogos;
 use App\Sports\CatalogDatabase;
 use Illuminate\Support\Facades\Schedule;
 
+// Телегиды меняются в течение дня: показы пересобираются каждые полчаса (файлы
+// телегидов — раз в sports.guides.refresh_hours). В каталоге — показы его событий.
+Schedule::command(ImportGuide::class)
+    ->everyThirtyMinutes()
+    ->withoutOverlapping();
+
 if (CatalogDatabase::standalone()) {
-    // Самостоятельный каталог: только Flashscore и только если владелец его включил
-    // (FLASHSCORE_ENABLED). Телегиды, Dispatcharr и прежние источники не запускаются.
+    // Расписание каталога: только Flashscore и только если владелец его включил
+    // (FLASHSCORE_ENABLED). Прежние источники расписания не запускаются.
     if (config('sports.catalog.flashscore.enabled')) {
         // Дневные списки и страницы турниров в пределах бюджета (pages_per_run).
         Schedule::command(ImportCatalog::class)
@@ -26,11 +32,6 @@ if (CatalogDatabase::standalone()) {
 
     return;
 }
-
-// Телегиды меняются в течение дня: показы пересобираются каждые полчаса (файлы телегидов — раз в sports.guides.refresh_hours).
-Schedule::command(ImportGuide::class)
-    ->everyThirtyMinutes()
-    ->withoutOverlapping();
 
 // Расписание матчей: бесплатный TheSportsDB медленный (пауза между запросами) — раз в час.
 Schedule::command(ImportFixtures::class)

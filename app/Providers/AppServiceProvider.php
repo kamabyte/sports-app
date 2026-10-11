@@ -23,9 +23,15 @@ use App\Guide\Listings\GuideSource;
 use App\Guide\Listings\TitleParser;
 use App\Guide\Listings\XmltvReader;
 use App\Guide\Matches\AiringMatcher;
+use App\Guide\Matches\LegacyAirings;
 use App\Guide\Matches\MatchBuilder;
 use App\Guide\Teams\TeamRegistry;
+use App\Sports\Broadcasts\CatalogAirings;
+use App\Sports\Broadcasts\EventBroadcasts;
+use App\Sports\Broadcasts\EventCandidates;
+use App\Sports\Broadcasts\EventMatcher;
 use App\Sports\Catalog\CatalogWriter;
+use App\Sports\CatalogDatabase;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\DevCommands;
@@ -53,14 +59,22 @@ class AppServiceProvider extends ServiceProvider
             password: (string) config('sports.providers.dispatcharr.password'),
         ));
 
+        $this->app->bind(EventBroadcasts::class, fn () => new EventBroadcasts(
+            client: $this->app->make(XtreamClient::class),
+            provider: (string) config('sports.providers.dispatcharr.name'),
+            preferredLanguages: config('sports.preferred_languages', []),
+        ));
+
         $this->app->bind(GuideImporter::class, fn () => new GuideImporter(
             client: $this->app->make(XtreamClient::class),
             files: new GuideFiles((int) config('sports.guides.refresh_hours')),
             reader: new XmltvReader,
             channelMatcher: new ChannelMatcher,
             parser: new TitleParser,
-            matcher: $this->app->make(AiringMatcher::class),
-            competitions: $this->app->make(CompetitionRegistry::class),
+            // Каталог — показы событий каталога; прежнее приложение — показы его матчей.
+            target: CatalogDatabase::standalone()
+                ? new CatalogAirings(new EventMatcher(new EventCandidates, config('sports.guides.slots', [])))
+                : new LegacyAirings($this->app->make(AiringMatcher::class), $this->app->make(CompetitionRegistry::class)),
             sources: GuideSource::fromConfig(config('sports.guides.sources', [])),
             daysAhead: (int) config('sports.guides.days_ahead'),
             overrides: config('sports.guides.channels', []),

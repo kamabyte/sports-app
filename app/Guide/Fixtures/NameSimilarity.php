@@ -56,9 +56,38 @@ final class NameSimilarity
      */
     private static array $scores = [];
 
+    /** Больше сравнений в кэше не держим: у каталога названий десятки тысяч. */
+    private const int MAX_CACHED = 200_000;
+
     public static function score(string $a, string $b): float
     {
+        if (count(self::$scores) >= self::MAX_CACHED) {
+            self::$scores = [];
+        }
+
         return self::$scores[$a."\0".$b] ??= self::compare($a, $b);
+    }
+
+    /**
+     * Грубые ключи названия: первая буква звучания каждого слова и код
+     * страны сборной. Похожие названия (score > 0) делят хотя бы один ключ —
+     * по ним можно не сравнивать заведомо разные: «Ньюкасл» (n) и «Newcastle» (n),
+     * «Венгрия» и «Hungary» (national:HU).
+     *
+     * @return list<string>
+     */
+    public static function keys(string $name): array
+    {
+        $national = NationalTeams::parse($name);
+        if ($national !== null) {
+            return ['national:'.$national['code']];
+        }
+
+        // «Йокерит» (iokerit) и «Jokerit»: j и i звучат одинаково в начале слова.
+        return array_values(array_unique(array_map(
+            fn (string $word) => strtr(self::phonetic($word)[0] ?? '', ['j' => 'i']),
+            self::words($name),
+        )));
     }
 
     private static function compare(string $a, string $b): float
@@ -80,6 +109,13 @@ final class NameSimilarity
 
         [$short, $long] = count($left) <= count($right) ? [$left, $right] : [$right, $left];
         $found = array_values(array_filter($short, fn (string $word) => array_any($long, fn (string $other) => self::sameWord($word, $other))));
+
+        // Одни сокращения — не совпадение: «MG» и «GO» (штаты Бразилии) — не
+        // «Магдебург» и «Ганновер», «PS» — не «Палмейрас». «Металлург Мг» — да:
+        // «Металлург» совпал сам по себе.
+        if ($found !== [] && ! array_any($found, fn (string $word) => array_any($long, fn (string $other) => self::sameWord($word, $other, abbreviations: false)))) {
+            return 0.0;
+        }
 
         // Совпало только общее слово, а у названия есть и своё — это не та команда.
         $distinctive = array_diff($short, self::GENERIC);
@@ -130,7 +166,7 @@ final class NameSimilarity
         ));
     }
 
-    private static function sameWord(string $a, string $b): bool
+    private static function sameWord(string $a, string $b, bool $abbreviations = true): bool
     {
         if ($a === $b) {
             return true;
@@ -141,7 +177,7 @@ final class NameSimilarity
             return true;
         }
 
-        if (self::abbreviates($a, $b) || self::abbreviates($b, $a)) {
+        if ($abbreviations && (self::abbreviates($a, $b) || self::abbreviates($b, $a))) {
             return true;
         }
 

@@ -16,8 +16,15 @@ for IPTV. Result tables from the first iteration stay in the DB, unused.
 verified Flashscore fields are in `docs/flashscore-catalog-coverage.md`.
 `SPORTS_MODE=standalone` (default) serves the catalog (`app/Sports`, tables
 `catalog_*`, pages `resources/js/pages/catalog`); `SPORTS_MODE=iptv` restores
-the legacy IPTV app unchanged. IPTV stays off until the owner approves the
-sports UX/UI **and** separately authorizes IPTV work.
+the legacy IPTV app unchanged.
+
+**IPTV in the catalog (authorized 11 Oct 2026, no on/off flag).** `guide:import`
+runs in standalone too: own XMLTV guides → `TitleParser` → `app/Sports/Broadcasts`
+(`EventMatcher` over catalog events) → `catalog_airings`. Broadcasts never
+control visibility; lists get only an `on_tv` marker and a `tv=1` filter; the
+event page lists broadcasts, `/event/{id}/watch/{airing}` plays them. No
+channel list / "on air now" pages for now. Slots («Чемпионат КХЛ») map to
+catalog competitions by Flashscore path in `sports.guides.slots`.
 
 Read first: `docs/architecture.md` (pipeline, matching rules, where to change
 what), `docs/api.md` (TV-client API), `docs/operations.md` (commands, config,
@@ -66,7 +73,8 @@ vendor/bin/pint                            # no git --dirty needed
 npm run check && npm run types:check
 php artisan catalog:discover               # page registry from the Flashscore sitemap
 php artisan catalog:import [--sport=tennis] [--dry-run]   # planned run without options (needs FLASHSCORE_ENABLED)
-php artisan guide:import | fixtures:import | logos:sync   # legacy, no-ops in standalone
+php artisan guide:import                   # channels + guides → catalog_airings (every 30 min)
+php artisan fixtures:import | logos:sync   # legacy, no-ops in standalone
 ```
 
 Screenshots: `php artisan serve --port=8123` + Playwright with installed

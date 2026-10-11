@@ -20,6 +20,7 @@ interface Props {
         date: string;
         category: { key: string; name: string } | null;
         competition: { id: number; name: string } | null;
+        tv: boolean;
     };
     groups: EventGroup[];
     next_date: string | null;
@@ -41,6 +42,7 @@ export default function SportPage({
     const extra = {
         category: filters.category?.key ?? null,
         competition: filters.competition?.id ?? null,
+        tv: filters.tv ? 1 : null,
     };
     const total = groups.reduce((sum, group) => sum + group.events.length, 0);
 
@@ -72,6 +74,7 @@ export default function SportPage({
                             filters.category,
                             filters.competition,
                         )}
+                        tv={filters.tv}
                     />
                 </div>
 
@@ -93,7 +96,7 @@ export default function SportPage({
                 ) : (
                     <Empty
                         icon={CalendarX2}
-                        title={`${formatDay(filters.date, timezone)}: событий нет`}
+                        title={`${formatDay(filters.date, timezone)}: ${filters.tv ? 'трансляций' : 'событий'} нет`}
                         action={
                             next_date && (
                                 <Link

@@ -35,7 +35,7 @@ interface Props {
         competitions_count: number;
     }[];
     national_teams_url: string | null;
-    filters: { date: string };
+    filters: { date: string; tv: boolean };
     groups: EventGroup[];
     next_date: string | null;
     panel: SportPanelData;
@@ -139,18 +139,24 @@ export default function CategoryPage(props: Props) {
                         <h2 className="text-[15px] font-semibold">
                             События раздела
                         </h2>
-                        <DayFilter path={category.url} date={filters.date} />
+                        <DayFilter
+                            path={category.url}
+                            date={filters.date}
+                            extra={{ tv: filters.tv ? 1 : null }}
+                            tv={filters.tv}
+                        />
                         {groups.length > 0 ? (
                             <EventGroups groups={groups} />
                         ) : (
                             <Empty
                                 icon={CalendarX2}
-                                title={`${formatDay(filters.date, timezone)}: событий нет`}
+                                title={`${formatDay(filters.date, timezone)}: ${filters.tv ? 'трансляций' : 'событий'} нет`}
                                 action={
                                     next_date && (
                                         <Link
                                             href={withQuery(category.url, {
                                                 date: next_date,
+                                                tv: filters.tv ? 1 : null,
                                             })}
                                             className="rounded-lg bg-foreground px-3 py-1.5 text-[13px] font-medium text-background"
                                         >

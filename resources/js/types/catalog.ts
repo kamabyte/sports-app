@@ -111,6 +111,8 @@ export interface EventItem {
     competition: CompetitionItem;
     sides: [Side, Side] | null;
     entrants: number | null;
+    /** Есть трансляция, которая ещё не закончилась. */
+    on_tv: boolean;
 }
 
 export interface EventDetail extends EventItem {

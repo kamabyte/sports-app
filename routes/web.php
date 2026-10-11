@@ -6,6 +6,7 @@ use App\Http\Controllers\Web\Catalog\CompetitionController;
 use App\Http\Controllers\Web\Catalog\EventController as CatalogEventController;
 use App\Http\Controllers\Web\Catalog\SportController as CatalogSportController;
 use App\Http\Controllers\Web\Catalog\TeamController;
+use App\Http\Controllers\Web\Catalog\WatchController as CatalogWatchController;
 use App\Http\Controllers\Web\ChannelController;
 use App\Http\Controllers\Web\EventController;
 use App\Http\Controllers\Web\ModeController;
@@ -21,7 +22,8 @@ use Illuminate\Support\Facades\Route;
  *
  * Спортивный каталог (docs/sports-catalog-reorganization-plan.md):
  * вид спорта → раздел (страна, регион, тур) → турнир → событие; команды,
- * сборные и спортсмены — свои страницы. Каналов и трансляций в нём нет.
+ * сборные и спортсмены — свои страницы. Трансляции событий — на странице
+ * события и странице просмотра; каналы отдельно не показываются.
  */
 Route::middleware(['auth', 'verified'])->group(function (): void {
     // Главная, расписание и поиск зависят от режима (SPORTS_MODE): каталог или прежнее приложение.
@@ -39,6 +41,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('/team/{team}/{slug?}', [TeamController::class, 'show'])->whereNumber('team')->name('catalog.team');
     Route::get('/player/{athlete}/{slug?}', [AthleteController::class, 'show'])->whereNumber('athlete')->name('catalog.player');
     Route::get('/event/{catalogEvent}', [CatalogEventController::class, 'show'])->whereNumber('catalogEvent')->name('catalog.event');
+    Route::get('/event/{catalogEvent}/watch/{broadcast?}', [CatalogWatchController::class, 'show'])->whereNumber(['catalogEvent', 'broadcast'])->name('catalog.watch');
+    Route::get('/event/{catalogEvent}/watch/{broadcast}/playlist.m3u', [CatalogWatchController::class, 'playlist'])->whereNumber(['catalogEvent', 'broadcast'])->name('catalog.playlist');
 });
 
 /*

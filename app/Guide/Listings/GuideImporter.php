@@ -2,16 +2,11 @@
 
 namespace App\Guide\Listings;
 
-use App\Guide\Competitions\CompetitionRegistry;
 use App\Guide\Dispatcharr\XtreamClient;
-use App\Guide\Matches\AiringMatcher;
 use App\Guide\SportRegistry;
-use App\Models\Airing;
 use App\Models\Channel;
-use App\Models\SportEvent;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Throwable;
 
@@ -19,9 +14,10 @@ use Throwable;
  * Каналы — из Dispatcharr, телегид — свой: XMLTV из sports.guides.sources.
  * Каналы привязываются к телегидам сами (ChannelMatcher), передачи
  * разбираются (TitleParser — по названию, а если там только вид спорта, то
- * с подзаголовком или описанием) и привязываются к матчам расписания
- * (AiringMatcher): прямой эфир, одновременный показ, повтор. События создаёт
- * расписание, телегид — нет: передача, не нашедшая матча, не показывается.
+ * с подзаголовком или описанием) и привязываются к событиям (AiringTarget:
+ * каталог или прежнее приложение): прямой эфир, одновременный показ, повтор.
+ * События создаёт расписание, телегид — нет: передача, не нашедшая события,
+ * не показывается.
  */
 final readonly class GuideImporter
 {
@@ -44,8 +40,7 @@ final readonly class GuideImporter
         private XmltvReader $reader,
         private ChannelMatcher $channelMatcher,
         private TitleParser $parser,
-        private AiringMatcher $matcher,
-        private CompetitionRegistry $competitions,
+        private AiringTarget $target,
         private array $sources,
         private int $daysAhead,
         private array $overrides = [],
@@ -55,13 +50,11 @@ final readonly class GuideImporter
     public function import(): ImportResult
     {
         $channels = $this->importChannels();
-        $this->competitions->sync();
 
         $now = CarbonImmutable::now('UTC');
         [$paths, $guides, $errors] = $this->loadGuides();
         $programmes = $this->readProgrammes($channels, $paths, $guides, $now);
 
-        $airings = 0;
         $parsed = $this->parseProgrammes($programmes);
         if ($parsed !== []) {
             $windowStart = min(array_map(fn (array $programme) => $programme['programme']->startsAt, $parsed));
@@ -71,38 +64,14 @@ final readonly class GuideImporter
             $windowEnd = $now->addDays($this->daysAhead);
         }
 
-        DB::transaction(function () use ($parsed, $windowStart, $windowEnd, &$airings): void {
-            // Будущие показы пересобираются заново, прошедшие остаются (история).
-            Airing::query()->where('starts_at', '>=', $windowStart)->delete();
-            $this->matcher->load($windowStart, $windowEnd);
-
-            foreach ($parsed as ['programme' => $programme, 'channel' => $channel, 'parsed' => $title]) {
-                $found = $this->matcher->match($title, $channel, $programme->startsAt, $programme->endsAt);
-
-                // Не нашлось в расписании — не событие: телегид событий не создаёт.
-                if ($found === null) {
-                    continue;
-                }
-
-                Airing::query()->create([
-                    'sport_event_id' => $found['match']->id,
-                    'channel_id' => $channel->id,
-                    'title' => $programme->title,
-                    'starts_at' => $programme->startsAt,
-                    'ends_at' => $programme->endsAt,
-                    'live' => $found['live'],
-                    'replay' => ! $found['live'],
-                ]);
-                $airings++;
-            }
-        });
+        $airings = $this->target->rebuild($windowStart, $windowEnd, $parsed);
 
         return new ImportResult(
             channels: $channels->count(),
             withGuide: $channels->whereNotNull('guide_source')->count(),
             programmes: count($parsed),
             airings: $airings,
-            events: SportEvent::query()->where('ends_at', '>=', $windowStart)->whereHas('airings')->count(),
+            events: $this->target->eventsWithAirings($windowStart),
             errors: $errors,
         );
     }

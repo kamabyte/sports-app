@@ -6,9 +6,9 @@ use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Фильтры расписания из адреса: день, вид спорта, раздел, турнир. Прошедших
- * дней нет — расписание начинается с сегодняшнего. Всё в URL: обновление
- * страницы, «назад» и ссылка сохраняют выбор.
+ * Фильтры расписания из адреса: день, вид спорта, раздел, турнир, «только
+ * с трансляцией». Прошедших дней нет — расписание начинается с сегодняшнего.
+ * Всё в URL: обновление страницы, «назад» и ссылка сохраняют выбор.
  */
 class CatalogDayRequest extends FormRequest
 {
@@ -22,6 +22,7 @@ class CatalogDayRequest extends FormRequest
             'sport' => ['nullable', 'string', 'max:32'],
             'category' => ['nullable', 'string', 'max:64'],
             'competition' => ['nullable', 'integer'],
+            'tv' => ['nullable', 'boolean'],
         ];
     }
 
@@ -51,5 +52,11 @@ class CatalogDayRequest extends FormRequest
         $id = $this->validated('competition');
 
         return $id === null ? null : (int) $id;
+    }
+
+    /** Только события с трансляцией. */
+    public function onTv(): bool
+    {
+        return $this->boolean('tv');
     }
 }

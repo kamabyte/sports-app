@@ -224,6 +224,8 @@ Present the integrated desktop/mobile app, evidence for required journeys, data 
 
 Only after UX/UI acceptance AND a subsequent instruction to integrate IPTV, propose optional channel/broadcast associations attached to canonical events. They must never control discovery or fixture visibility. No automatic reactivation, playback placeholders or channel-first redesign during phases A–F.
 
+**Status 11 Oct 2026:** the owner accepted the UX/UI and authorized IPTV. Delivered: `catalog_airings` attached to catalog events for all sports the guides cover, «по ТВ» marker and «С трансляцией» filter in lists, broadcasts on the event page, catalog watch page. No IPTV flag; channel list and "on air now" deferred by the owner.
+
 ## 9. Acceptance checklist
 
 - A new user can explain what a football list contains from its heading, selected date, filters and competition groups.

@@ -130,6 +130,10 @@ it('does not attach a broadcast to a different match', function (string $sport, 
     'СКА is not ЦСКА' => ['hockey', 'Динамо М', 'ЦСКА', 'КХЛ. Динамо (Москва) – СКА'],
     'senior team is not U21' => ['football', 'England U21', 'Spain U21', 'Футбол. Англия – Испания. Лига наций'],
     'different club, same generic word' => ['football', 'Real Cartagena', 'Malaga', 'Футбол. Испания. Реал Мадрид – Малага'],
+    // Okko Футбол, 10.10.2026: «MG» и «GO» — штаты Бразилии, а не сокращения.
+    'two-letter codes are not abbreviations' => ['football', 'Atletico GO', 'America MG', 'Магдебург – Ганновер. Футбол. Бундеслига 2'],
+    // Win Sports, 12.10.2026: «PS» и «CS» — не «Палмейрас» и не «Коринтианс».
+    'club initials alone are not a name' => ['football', 'PS Sakiet Eddaier', 'CS Sfaxien', 'Fútbol Brasileirao. Palmeiras vs. Corinthians'],
 ]);
 
 it('attaches a Formula 1 session by its slot and takes the Russian title', function (): void {

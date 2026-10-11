@@ -164,9 +164,18 @@ Tests never hit the network: `fakeDispatcharr()` / `fakeGuide()` in
 
 - `SPORTS_MODE=standalone` (default): `/`, `/schedule`, `/search` and
   `/sport/…`, `/team/…`, `/player/…`, `/event/…` come from the `catalog_*`
-  tables and show upcoming events only (no results or history). `guide:import`, `fixtures:import` and `logos:sync` exit without any
-  request and are not scheduled; the scheduler runs only `catalog:import`
-  (hourly at :05, and only with `FLASHSCORE_ENABLED=true`).
+  tables and show upcoming events only (no results or history).
+  `fixtures:import` and `logos:sync` exit without any request and are not
+  scheduled; the scheduler runs `catalog:import` (hourly at :05, only with
+  `FLASHSCORE_ENABLED=true`) and `guide:import` (every 30 minutes).
+- Broadcasts (since 11 Oct 2026): `guide:import` imports Dispatcharr channels,
+  reads the guides and attaches programmes to catalog events
+  (`catalog_airings`, rebuilt from the guide window start; past ones stay).
+  Teams/athletes match by all their catalog names (en + ru, labels of day-list
+  sides); programmes without opponents match a slot via `sports.guides.slots`
+  (guide competition key → Flashscore path patterns). The guide never renames
+  catalog entities. Finished events are hidden by the catalog, so replays of
+  them are stored but not reachable.
   `SPORTS_MODE=iptv` brings the previous app back unchanged.
 - `php artisan catalog:import` — pages listed in
   `sports.catalog.flashscore.competitions` / `.teams`; `--sport=`, `--page=`,
@@ -178,6 +187,8 @@ Tests never hit the network: `fakeDispatcharr()` / `fakeGuide()` in
   *planned* run: day lists (today, tomorrow) + up to `FLASHSCORE_PAGES_PER_RUN`
   competition pages; `FLASHSCORE_LITE_ENABLED=false` turns the day lists off.
 - Rollback: `SPORTS_MODE=iptv` (no data changes needed); the catalog
-  migrations are additive (`migrate:rollback --step=6` drops only `catalog_*`).
+  migrations are additive (`migrate:rollback --step=6` drops only `catalog_*`;
+  `--step=1` drops just `catalog_airings`). Pre-IPTV backup:
+  `database/backups/database-2026-10-11-before-iptv.sqlite`.
   Pre-catalog backup: `database/backups/database-2026-10-07-before-catalog.sqlite`.
 

@@ -60,6 +60,8 @@ final class EventFeed
         return Event::query()
             ->with(self::relations())
             ->withCount('entries')
+            // «По ТВ»: есть показ, который ещё не закончился (прямой эфир или повтор).
+            ->withExists(['airings as on_tv' => fn (Builder $airings) => $airings->where('ends_at', '>', CarbonImmutable::now())])
             ->where('publication_state', 'published')
             ->whereNotIn('status', self::HIDDEN)
             ->where(fn (Builder $query) => $query
@@ -75,7 +77,7 @@ final class EventFeed
      *
      * @return Builder<Event>
      */
-    public static function day(CarbonImmutable $day, ?Sport $sport = null, ?Category $category = null, ?Competition $competition = null): Builder
+    public static function day(CarbonImmutable $day, ?Sport $sport = null, ?Category $category = null, ?Competition $competition = null, bool $onTv = false): Builder
     {
         [$from, $to] = self::window($day);
 
@@ -88,12 +90,13 @@ final class EventFeed
             ->when($sport, fn (Builder $query) => $query->whereHas('competition', fn (Builder $c) => $c->where('sport_id', $sport->id)))
             ->when($category, fn (Builder $query) => $query->whereHas('competition.categories', fn (Builder $c) => $c->whereKey($category->id)))
             ->when($competition, fn (Builder $query) => $query->where('competition_id', $competition->id))
+            ->when($onTv, fn (Builder $query) => self::onTv($query))
             ->orderByRaw('starts_at is null, starts_at')
             ->orderBy('id');
     }
 
     /** Ближайший день после выбранного, в котором есть события — для кнопки «Ближайшие». */
-    public static function nextDay(CarbonImmutable $day, ?Sport $sport = null, ?Category $category = null): ?CarbonImmutable
+    public static function nextDay(CarbonImmutable $day, ?Sport $sport = null, ?Category $category = null, bool $onTv = false): ?CarbonImmutable
     {
         [, $to] = self::window($day);
         $next = self::query()
@@ -102,10 +105,22 @@ final class EventFeed
             ->where('starts_at', '>=', $to)
             ->when($sport, fn (Builder $query) => $query->whereHas('competition', fn (Builder $c) => $c->where('sport_id', $sport->id)))
             ->when($category, fn (Builder $query) => $query->whereHas('competition.categories', fn (Builder $c) => $c->whereKey($category->id)))
+            ->when($onTv, fn (Builder $query) => self::onTv($query))
             ->orderBy('starts_at')
             ->value('starts_at');
 
         return $next === null ? null : CarbonImmutable::parse($next, 'UTC')->setTimezone(config('sports.timezone'))->startOfDay();
+    }
+
+    /**
+     * Только события с трансляцией, которая ещё не закончилась.
+     *
+     * @param  Builder<Event>  $query
+     * @return Builder<Event>
+     */
+    private static function onTv(Builder $query): Builder
+    {
+        return $query->whereHas('airings', fn (Builder $airings) => $airings->where('ends_at', '>', CarbonImmutable::now()));
     }
 
     /**

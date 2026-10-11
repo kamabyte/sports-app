@@ -308,6 +308,44 @@ return [
         // Привязка вручную, если автоматическая ошиблась: название канала →
         // «источник:id канала в телегиде»; null — канал без телегида.
         'channels' => [],
+
+        // Передача без соперников («Чемпионат КХЛ», «Формула-1. Гонка») — слот
+        // турнира: ключ турнира телегида (CompetitionCatalog) → страницы
+        // Flashscore его турниров в каталоге (шаблон fnmatch). Только по
+        // адресу источника, не по похожему названию.
+        'slots' => [
+            'ucl' => ['/football/europe/champions-league/'],
+            'uel' => ['/football/europe/europa-league/'],
+            'uecl' => ['/football/europe/conference-league/'],
+            'nations' => ['/football/europe/uefa-nations-league/'],
+            'rpl' => ['/football/russia/premier-league/'],
+            'fnl' => ['/football/russia/fnl/'],
+            'epl' => ['/football/england/premier-league/'],
+            'efl-championship' => ['/football/england/championship/'],
+            'laliga' => ['/football/spain/laliga/'],
+            'bundesliga' => ['/football/germany/bundesliga/'],
+            'seriea' => ['/football/italy/serie-a/'],
+            'ligue1' => ['/football/france/ligue-1/'],
+            'eredivisie' => ['/football/netherlands/eredivisie/'],
+            'primeira' => ['/football/portugal/liga-portugal/'],
+            'spfl' => ['/football/scotland/premiership/'],
+            'khl' => ['/hockey/russia/khl/'],
+            'mhl' => ['/hockey/russia/mhl/'],
+            'nhl' => ['/hockey/usa/nhl/'],
+            'chl' => ['/hockey/europe/champions-league/'],
+            'euroleague' => ['/basketball/europe/euroleague/'],
+            'eurocup' => ['/basketball/europe/eurocup/'],
+            'vtb' => ['/basketball/russia/vtb-united-league/'],
+            'nba' => ['/basketball/usa/nba/'],
+            'bcl' => ['/basketball/europe/champions-league/'],
+            'volley-superliga-men' => ['/volleyball/russia/superleague/'],
+            'ehf-cl' => ['/handball/europe/champions-league/'],
+            'ehf-el' => ['/handball/europe/european-league/'],
+            'handball-superliga' => ['/handball/russia/superleague/'],
+            'f1' => ['/auto-racing/formula-1/*'],
+            'biathlon-wc' => ['/biathlon/*'],
+            'biathlon-wch' => ['/biathlon/*'],
+        ],
     ],
 
     'providers' => [

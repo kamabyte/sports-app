@@ -159,6 +159,18 @@ export function eventDay(event: EventItem, timeZone: string): string | null {
     return event.date;
 }
 
+/** Название события: «Хозяева — Гости» или имя гонки/сессии, иначе турнир. */
+export function eventTitle(event: EventItem): string {
+    return event.sides
+        ? event.sides
+              .map(
+                  (side) =>
+                      side.participant?.name ?? side.label ?? 'Уточняется',
+              )
+              .join(' — ')
+        : (event.name ?? event.competition.name);
+}
+
 export function isLive(event: { status: string }): boolean {
     return event.status === 'live' || event.status === 'interrupted';
 }

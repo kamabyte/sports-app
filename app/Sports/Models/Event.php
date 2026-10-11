@@ -98,4 +98,12 @@ class Event extends CatalogModel
     {
         return $this->hasMany(EventEntry::class)->orderBy('side')->orderBy('position');
     }
+
+    /**
+     * @return HasMany<Airing, $this>
+     */
+    public function airings(): HasMany
+    {
+        return $this->hasMany(Airing::class);
+    }
 }

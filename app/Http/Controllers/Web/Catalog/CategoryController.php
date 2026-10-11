@@ -51,7 +51,7 @@ class CategoryController extends Controller
             default => 'Турниры',
         })->sortBy(fn ($group, string $title) => array_search($title, ['Лиги', 'Кубки', 'Турниры', 'Женские турниры', 'Молодёжные', 'Сборные'], true));
 
-        $events = EventFeed::day($day, $sport, $category)->get();
+        $events = EventFeed::day($day, $sport, $category, onTv: $request->onTv())->get();
 
         return Inertia::render('catalog/category', [
             'sport' => ['key' => $sport->key, 'name' => $sport->name, 'family' => $sport->family, 'url' => Display::sportUrl($sport->key), 'has_data' => $sport->active],
@@ -71,9 +71,9 @@ class CategoryController extends Controller
             'national_teams_url' => $category->country_id !== null && Team::query()->where('sport_id', $sport->id)->where('kind', 'national')->where('country_id', $category->country_id)->exists()
                 ? Display::sportUrl($sport->key).'/national-teams?country='.$category->country?->code
                 : null,
-            'filters' => ['date' => $day->toDateString()],
+            'filters' => ['date' => $day->toDateString(), 'tv' => $request->onTv()],
             'groups' => EventGroups::byCompetition($events),
-            'next_date' => $events->isEmpty() ? EventFeed::nextDay($day, $sport, $category)?->toDateString() : null,
+            'next_date' => $events->isEmpty() ? EventFeed::nextDay($day, $sport, $category, $request->onTv())?->toDateString() : null,
             'panel' => SportPanel::for($sport),
         ]);
     }
