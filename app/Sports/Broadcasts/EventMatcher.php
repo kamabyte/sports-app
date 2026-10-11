@@ -33,6 +33,17 @@ final class EventMatcher
 
     private const float MIN_SCORE_REPLAY = 1.5;
 
+    /**
+     * Вид спорта неизвестен («Испания. Бетис – Осасуна»): ищем во всех, но
+     * строже — обе стороны должны совпасть хорошо, и второго похожего события
+     * рядом быть не должно.
+     */
+    private const float MIN_SCORE_ANY_LIVE = 1.5;
+
+    private const float MIN_SCORE_ANY_REPLAY = 1.8;
+
+    private const float ANY_AMBIGUITY = 0.25;
+
     /** Слот «Чемпионат КХЛ»: событие начинается от 15 минут до начала слота до 45 после. */
     private const int SLOT_EARLY_MINUTES = 15;
 
@@ -93,12 +104,13 @@ final class EventMatcher
     public function match(ParsedTitle $parsed, CarbonImmutable $startsAt, CarbonImmutable $endsAt): ?array
     {
         $candidates = [];
-        foreach (self::SPORTS[$parsed->sport] ?? [] as $sport) {
+        $sports = $parsed->knowsSport() ? self::SPORTS[$parsed->sport] ?? [] : array_keys($this->candidates);
+        foreach ($sports as $sport) {
             array_push($candidates, ...$this->candidates[$sport] ?? []);
         }
 
         $found = $parsed->hasTeams()
-            ? $this->byTeams($parsed, $candidates, $startsAt)
+            ? $this->byTeams($parsed, $candidates, $startsAt, $endsAt)
             : $this->bySlot($parsed, $candidates, $startsAt);
 
         if ($found === null) {
@@ -113,16 +125,28 @@ final class EventMatcher
     /**
      * @param  list<Candidate>  $candidates
      */
-    private function byTeams(ParsedTitle $parsed, array $candidates, CarbonImmutable $startsAt): ?Candidate
+    private function byTeams(ParsedTitle $parsed, array $candidates, CarbonImmutable $startsAt, CarbonImmutable $endsAt): ?Candidate
     {
         $category = TeamCategory::of("{$parsed->home} {$parsed->away} {$parsed->competition}");
         $homeKeys = Candidate::keys([(string) $parsed->home]);
         $awayKeys = Candidate::keys([(string) $parsed->away]);
+        $known = $parsed->knowsSport();
+        // Сборные играют во всех видах спорта: «Germany v Spain» без вида спорта не угадать.
+        if (! $known && self::national($homeKeys) && self::national($awayKeys)) {
+            return null;
+        }
+        [$minLive, $minReplay] = $known ? [self::MIN_SCORE_LIVE, self::MIN_SCORE_REPLAY] : [self::MIN_SCORE_ANY_LIVE, self::MIN_SCORE_ANY_REPLAY];
         $best = null;
         $bestRank = 0.0;
+        $secondRank = 0.0;
 
         foreach ($candidates as $candidate) {
             if (! $candidate->headToHead() || (! $candidate->individual && $candidate->category !== $category)) {
+                continue;
+            }
+
+            // Закончилась до начала — студия перед матчем, а не сам матч.
+            if ($endsAt->lte($candidate->startsAt)) {
                 continue;
             }
 
@@ -137,13 +161,24 @@ final class EventMatcher
             }
 
             $score = TeamMatch::byNames((string) $parsed->home, (string) $parsed->away, $candidate->home, $candidate->away)['score'];
-            $accepted = $score >= ($live ? self::MIN_SCORE_LIVE : self::MIN_SCORE_REPLAY);
+            $accepted = $score >= ($live ? $minLive : $minReplay);
             // При прочих равных — событие, которое идёт в эфире.
             $rank = $score + ($live ? 1 : 0);
 
-            if ($accepted && $rank > $bestRank) {
-                [$best, $bestRank] = [$candidate, $rank];
+            if (! $accepted) {
+                continue;
             }
+
+            if ($rank > $bestRank) {
+                [$best, $bestRank, $secondRank] = [$candidate, $rank, $bestRank];
+            } elseif ($rank > $secondRank) {
+                $secondRank = $rank;
+            }
+        }
+
+        // Без вида спорта два похожих события — не угадываем.
+        if (! $known && $best !== null && $secondRank > $bestRank - self::ANY_AMBIGUITY) {
+            return null;
         }
 
         return $best;
@@ -169,6 +204,14 @@ final class EventMatcher
             && $candidate->startsAt->between($startsAt->subMinutes(self::SLOT_EARLY_MINUTES), $startsAt->addMinutes(self::SLOT_LATE_MINUTES)));
 
         return count($inSlot) === 1 ? reset($inSlot) : null;
+    }
+
+    /**
+     * @param  array<string, true>  $keys
+     */
+    private static function national(array $keys): bool
+    {
+        return $keys !== [] && array_all(array_keys($keys), fn (string $key) => str_starts_with($key, 'national:'));
     }
 
     /**

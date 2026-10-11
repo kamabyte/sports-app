@@ -33,6 +33,8 @@ final class NameSimilarity
         'santa', 'saint', 'st', 'new', 'royal', 'deportivo', 'town', 'rovers', 'wanderers', 'county', 'borussia',
         'slavia', 'sparta', 'young', 'boys', 'fortuna', 'vitoria', 'academy', 'akademia', 'basket', 'basketball',
         'volley', 'handball', 'hockey', 'women', 'u19', 'u21',
+        // «Paris FC» — не «Paris Saint-Germain»: город, а не клуб.
+        'paris',
     ];
 
     private const array NOISE = ['fc', 'fk', 'hc', 'hk', 'bc', 'bk', 'cf', 'sc', 'ac', 'club', 'the'];

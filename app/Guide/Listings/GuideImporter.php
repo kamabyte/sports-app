@@ -268,13 +268,14 @@ final readonly class GuideImporter
         $hint = SportRegistry::hint($channel->name);
         $parsed = $this->parser->parse($programme->title, $programme->startsAt, $hint);
 
-        if ($parsed?->hasTeams()) {
+        if ($parsed?->hasTeams() && $parsed->knowsSport()) {
             return $parsed;
         }
 
+        // Вид спорта или соперники бывают в описании: «Дортмунд – Вердер» + «Футбол. Бундеслига».
         foreach ($programme->details() as $detail) {
             $detailed = $this->parser->parse(rtrim($programme->title, ' .').'. '.$detail, $programme->startsAt, $hint);
-            if ($detailed?->hasTeams()) {
+            if ($detailed?->hasTeams() && ($detailed->knowsSport() || ! $parsed?->hasTeams())) {
                 return $detailed;
             }
         }

@@ -86,3 +86,20 @@ it('does not give a language version the guide of the main channel', function ()
     expect(chosenGuide(channelNamed(1, 'FIFA+ Spain', 'FIFAPlus.uk@Spain'), $guides))->toBeNull()
         ->and(chosenGuide(channelNamed(1, 'FIFA+', 'FIFAPlus.uk@SD'), $guides))->toBe(['source' => 'plex', 'channel' => 'plex.tv.FIFA+.plex']);
 });
+
+it('strips our own trailing country code and falls back to the neighbouring CZ/SK guide', function (): void {
+    // Dispatcharr, 11.10.2026: «Canal+ Sport 6 SK» без телегида, хотя в словацком он есть.
+    $guides = [
+        'cz' => ['Canal.plus.Sport.2.cz' => ['Canal+ Sport 2'], 'Canal.plus.Sport.6.cz' => ['Canal+ Sport 6']],
+        'sk' => ['CANAL+.Sport.6.HD.sk' => ['CANAL+ Sport 6 HD']],
+    ];
+
+    expect(chosenGuide(channelNamed(1, 'Canal+ Sport 6 SK', 'CanalPlusSport6SK.sk@SD'), $guides))
+        ->toBe(['source' => 'sk', 'channel' => 'CANAL+.Sport.6.HD.sk'])
+        // Словацкого Canal+ Sport 2 в телегиде нет — чешский, это тот же канал.
+        ->and(chosenGuide(channelNamed(2, 'Canal+ Sport 2 SK', 'CanalPlusSport2SK.sk@SD'), $guides))
+        ->toBe(['source' => 'cz', 'channel' => 'Canal.plus.Sport.2.cz'])
+        // Других соседей нет: венгерский канал чешский телегид не берёт.
+        ->and(chosenGuide(channelNamed(3, 'Canal+ Sport 2 HU', 'CanalPlusSport2HU.hu@SD'), $guides))
+        ->toBeNull();
+});

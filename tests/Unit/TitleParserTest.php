@@ -82,6 +82,17 @@ it('parses foreign guides', function (string $title, array $expected): void {
     'sport from the league in the description' => ['Atlético La Paz vs. Venados. Jornada 11 del Torneo Apertura 2026 de la Liga Expansión MX', ['sport' => 'football', 'home' => 'Atlético La Paz', 'away' => 'Venados']],
     'english round after the teams' => ['Major Arena Soccer League. Baltimore v Milwaukee - SF G1', ['home' => 'Baltimore', 'away' => 'Milwaukee', 'round' => 'SF G1']],
     'french slash' => ['Bordeaux-Bègles / Lyon. Top 14 5e Journée', ['sport' => 'rugby', 'home' => 'Bordeaux-Bègles', 'away' => 'Lyon']],
+    // Каталог знает американский футбол, бейсбол, крикет, дартс, гольф.
+    'american college football' => ['College Football. Clemson vs. Miami', ['sport' => 'american-football', 'home' => 'Clemson', 'away' => 'Miami']],
+    'hungarian MLB playoff' => ['MLB. Playoff, főcsoport-elődöntő, Atlanta Braves - Los Angeles Dodgers', ['sport' => 'baseball', 'home' => 'Atlanta Braves', 'away' => 'Los Angeles Dodgers']],
+    // Sport 1 (Ukraine), 11.10.2026.
+    'ukrainian hockey' => ['Хокей. Чемпіонат Чехії. Екстраліга. Плзень – Пардубіце', ['sport' => 'hockey', 'home' => 'Плзень', 'away' => 'Пардубіце']],
+    // M4 Sport, 10.10.2026: «NB I.» — римский номер лиги, после него новый сегмент.
+    'hungarian NB I' => ['Férfi kosárlabda NB I. Atomerőmű SE - Sopron KC.', ['sport' => 'basketball', 'home' => 'Atomerőmű SE', 'away' => 'Sopron KC']],
+    'hungarian F1 race' => ['Forma 1 - Futam. Szingapúri Nagydíj.', ['sport' => 'motorsport', 'home' => null, 'competition' => 'Forma 1 - Futam']],
+    // Setanta Sports 2 и M4 Sport: вида спорта нет ни в названии, ни у канала — соперников ищут везде.
+    'no sport word anywhere' => ['⋗ Испания. «Бетис» – «Осасуна»', ['sport' => 'any', 'home' => 'Бетис', 'away' => 'Осасуна', 'live' => true]],
+    'league name without sport' => ['▶️ OTP Bank Liga. Kispest-Honvéd FC - Újpest FC.', ['sport' => 'any', 'home' => 'Kispest-Honvéd FC', 'away' => 'Újpest FC']],
 ]);
 
 it('keeps the women category of foreign titles', function (): void {
@@ -93,8 +104,12 @@ it('keeps the women category of foreign titles', function (): void {
 it('skips foreign shows and sports we do not cover', function (string $title): void {
     expect((new TitleParser)->parse($title))->toBeNull();
 })->with([
-    'College Football. Clemson vs. Miami',
-    'MLB. Playoff, főcsoport-elődöntő, Atlanta Braves - Los Angeles Dodgers',
+    // SportsGrid: разговор о матче во время игры, а не трансляция.
+    'San Francisco 49ers vs. Seattle Seahawks NFL Football In-Game Live Gameday',
+    // Canal+ Sport SK, 11.10.2026: «Zápasové studio» до и после матча.
+    'Match Time. Liverpool - Manchester City',
+    // FIFA+: архив, а не трансляция.
+    'Germany v Spain - Semi-finals - 2010 FIFA World Cup South Africa™ - Full Match Replay',
     'Lední hokej. Sestřih. Sparta - Kometa',
     'Labdarúgás. Bajnokok Ligája-magazin.',
     'UFC Epic Moments. Jones vs Gustafsson',

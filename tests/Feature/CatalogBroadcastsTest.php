@@ -21,6 +21,40 @@ beforeEach(function (): void {
 });
 
 /**
+ * Матч каталога со страницей турнира Flashscore (path) и названиями сторон
+ * по-английски и по-русски. Теннис — спортсмены, остальное — клубы.
+ *
+ * @param  list<array{0: string, 1: string}>  $sides
+ */
+function seedCatalogMatch(string $sport, string $path, string $competition, array $sides, string $startsAt, string $kind = 'club'): Event
+{
+    $w = new CatalogWriter;
+    $w->syncSports();
+    $flashscore = $w->provider('flashscore', 'Flashscore');
+    $sport = $w->sport($sport);
+    $sport->update(['active' => true]);
+    $category = $w->category($sport, 'series', 'category-'.$sport->key, 'Category');
+    $competition = $w->competition($sport, $category, ['name' => $competition, 'participant_kind' => $sport->key === 'tennis' ? 'individual' : $kind], [$flashscore, 'path', $path]);
+    $start = CarbonImmutable::parse($startsAt, 'UTC');
+    $event = $w->event($competition, ['kind' => 'match', 'status' => 'scheduled', 'starts_at' => $start, 'date' => $start->toDateString(), 'time_precision' => 'exact']);
+    $entries = [];
+    foreach ($sides as $index => [$name, $russian]) {
+        if ($sport->key === 'tennis') {
+            $athlete = $w->athlete($sport, ['name' => $name]);
+            $w->name($athlete, 'ru', $russian);
+            $entries[] = ['side' => $index + 1, 'entry' => $w->athleteEntry($sport, $athlete)];
+        } else {
+            $team = $w->team($sport, ['name' => $name, 'kind' => $kind, 'gender' => 'men', 'age_group' => 'senior']);
+            $w->name($team, 'ru', $russian);
+            $entries[] = ['side' => $index + 1, 'entry' => $w->teamEntry($team)];
+        }
+    }
+    $w->eventEntries($event, $entries);
+
+    return $event;
+}
+
+/**
  * Гандбол ЦСКА — СГАУ-Саратов (в телегиде: прямой эфир на двух каналах и
  * повтор), матч КХЛ для слота «Чемпионат КХЛ», теннис и футбол без показов.
  *
@@ -28,39 +62,11 @@ beforeEach(function (): void {
  */
 function seedBroadcastCatalog(): array
 {
-    $w = new CatalogWriter;
-    $w->syncSports();
-    $flashscore = $w->provider('flashscore', 'Flashscore');
-    $russia = $w->country('russia', 'Russia', ['iso2' => 'RU']);
-    $match = function (string $sport, string $path, string $competition, array $sides, string $startsAt) use ($w, $flashscore, $russia): Event {
-        $sport = $w->sport($sport);
-        $sport->update(['active' => true]);
-        $category = $w->category($sport, 'country', 'russia-'.$sport->key, 'Russia', country: $russia);
-        $competition = $w->competition($sport, $category, ['name' => $competition, 'participant_kind' => $sport->key === 'tennis' ? 'individual' : 'club'], [$flashscore, 'path', $path]);
-        $start = CarbonImmutable::parse($startsAt, 'UTC');
-        $event = $w->event($competition, ['kind' => 'match', 'status' => 'scheduled', 'starts_at' => $start, 'date' => $start->toDateString(), 'time_precision' => 'exact']);
-        $entries = [];
-        foreach ($sides as $index => [$name, $russian]) {
-            if ($sport->key === 'tennis') {
-                $athlete = $w->athlete($sport, ['name' => $name]);
-                $w->name($athlete, 'ru', $russian);
-                $entries[] = ['side' => $index + 1, 'entry' => $w->athleteEntry($sport, $athlete)];
-            } else {
-                $team = $w->team($sport, ['name' => $name, 'kind' => 'club', 'gender' => 'men', 'age_group' => 'senior']);
-                $w->name($team, 'ru', $russian);
-                $entries[] = ['side' => $index + 1, 'entry' => $w->teamEntry($team)];
-            }
-        }
-        $w->eventEntries($event, $entries);
-
-        return $event;
-    };
-
     return [
-        'handball' => $match('handball', '/handball/russia/superleague/', 'Superleague', [['CSKA Moscow', 'ЦСКА'], ['SGAU Saratov', 'СГАУ-Саратов']], '2026-10-06 16:30'),
-        'khl' => $match('hockey', '/hockey/russia/khl/', 'KHL', [['SKA St. Petersburg', 'СКА'], ['Cherepovets', 'Северсталь']], '2026-10-06 16:30'),
-        'tennis' => $match('tennis', '/tennis/atp-singles/shanghai/', 'Shanghai', [['Medvedev D.', 'Медведев Д.'], ['Sinner J.', 'Синнер Я.']], '2026-10-07 07:00'),
-        'football' => $match('football', '/football/russia/premier-league/', 'Premier League', [['Zenit', 'Зенит'], ['Spartak Moscow', 'Спартак']], '2026-10-06 18:00'),
+        'handball' => seedCatalogMatch('handball', '/handball/russia/superleague/', 'Superleague', [['CSKA Moscow', 'ЦСКА'], ['SGAU Saratov', 'СГАУ-Саратов']], '2026-10-06 16:30'),
+        'khl' => seedCatalogMatch('hockey', '/hockey/russia/khl/', 'KHL', [['SKA St. Petersburg', 'СКА'], ['Cherepovets', 'Северсталь']], '2026-10-06 16:30'),
+        'tennis' => seedCatalogMatch('tennis', '/tennis/atp-singles/shanghai/', 'Shanghai', [['Medvedev D.', 'Медведев Д.'], ['Sinner J.', 'Синнер Я.']], '2026-10-07 07:00'),
+        'football' => seedCatalogMatch('football', '/football/russia/premier-league/', 'Premier League', [['Zenit', 'Зенит'], ['Spartak Moscow', 'Спартак']], '2026-10-06 18:00'),
     ];
 }
 
@@ -111,6 +117,32 @@ it('rebuilds future airings and drops those of removed channels', function (): v
 
     // Остался один канал с телегидом: его прямой эфир, без повторов.
     expect($events['handball']->airings()->count())->toBe(1);
+});
+
+it('finds a pair without a sport word in every sport, but never guesses national teams', function (): void {
+    // Setanta Sports 2, 11.10.2026: ни в названии, ни у канала вида спорта нет.
+    $betis = seedCatalogMatch('football', '/football/spain/laliga/', 'LaLiga', [['Betis', 'Бетис'], ['Osasuna', 'Осасуна']], '2026-10-06 16:30');
+    // FIFA+ и бейсбол: «Germany v Spain» без вида спорта может быть чем угодно.
+    $baseball = seedCatalogMatch('baseball', '/baseball/world/premier-12/', 'Premier 12', [['Spain', 'Испания'], ['Germany', 'Германия']], '2026-10-06 16:30', 'national');
+    fakeDispatcharr([
+        ['1', '20261006162500', '20261006182500', '⋗ Испания. «Бетис» – «Осасуна»'],
+        ['2', '20261006162500', '20261006182500', 'Germany v Spain - Semi-finals'],
+    ]);
+
+    $this->artisan('guide:import')->assertSuccessful();
+
+    expect($betis->airings()->value('live'))->toBeTrue()
+        ->and($baseball->airings()->count())->toBe(0);
+});
+
+it('does not take a show that ends before kickoff for the match', function (): void {
+    $events = seedBroadcastCatalog();
+    // Студия перед матчем с соперниками в названии: 16:00–16:25, матч в 16:30.
+    fakeDispatcharr([['1', '20261006160000', '20261006162500', 'Гандбол. Перед игрой. ЦСКА – СГАУ-Саратов']]);
+
+    $this->artisan('guide:import')->assertSuccessful();
+
+    expect($events['handball']->airings()->where('starts_at', '<', CarbonImmutable::parse('2026-10-06 16:25', 'UTC'))->count())->toBe(0);
 });
 
 it('marks events on TV in lists, filters by it and keeps events without broadcasts', function (): void {

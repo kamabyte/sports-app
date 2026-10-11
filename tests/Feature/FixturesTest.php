@@ -43,6 +43,10 @@ it('compares Russian and English team names', function (string $ru, string $en, 
     ['Металлург (Мг)', 'Metallurg Novokuznetsk', 0.0, 0.0],
     ['Бавария', 'Ben Aknoun', 0.0, 0.0],
     ['Эльверсберг', 'JS El Biar', 0.0, 0.0],
+    // beIN SPORTS XTRA, 12.10.2026: «Paris FC» — другой клуб, город — лишь половина совпадения.
+    ['Paris Saint Germain', 'Paris FC', 0.0, 0.5],
+    // Okko Футбол, 10.10.2026: одни двухбуквенные коды — не совпадение.
+    ['Магдебург', 'America MG', 0.0, 0.0],
 ]);
 
 it('does not crash when another registry already took a spelling', function (): void {

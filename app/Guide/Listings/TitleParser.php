@@ -32,11 +32,8 @@ final class TitleParser
     /** Повтор: «(Reluare)», «ism.», «záznam». */
     private const string REPLAY_PHRASES = '/\(?(?<!\p{L})(reluare|ism\.|ismétlés|záznam|repetición|rediffusion|differita)(?!\p{L})\)?/iu';
 
-    /** Виды спорта, которых у нас нет и с которыми путается футбол: «College Football» — американский. */
-    private const string IGNORED = '/(?<!\p{L})(college football|american football|fútbol americano|football américain|nfl|ncaa|cfl|onefa|cricket|крикет|baseball|бейсбол|béisbol|beisbol|mlb)(?!\p{L})/iu';
-
     /** Передачи о спорте, а не трансляции. */
-    private const string SHOWS = '/(?<!\p{L})(обзор|превью|шоу|реакция|выпуск|яркие матчи|лучшие моменты|анонс|журнал|студия|новости|классика|иконы|итоги|подкаст|реалити|наши чемпионы|магия|спорт\.док|ностальжи|величайш|все или ничего|тактика|видео дня|перед матчем|после матча|ток-шоу|эксклюзив|тревел|подробно|трансферы|гала-концерт|лучшие|легенды|неделя|история|документальн|уточняется|felvezető|értékelő|összefoglaló|magazin|magazín|highlights|sestřih|zprávy|hírek|noticias|resumen|rewind|epic moments|best of|all access|documentary|dokument|tonight|pregame|postgame|pre-game|post-game|countdown|recap|press conference|paddock|pit walk)/iu';
+    private const string SHOWS = '/(?<!\p{L})(обзор|превью|шоу|реакция|выпуск|яркие матчи|лучшие моменты|анонс|журнал|студия|новости|классика|иконы|итоги|подкаст|реалити|наши чемпионы|магия|спорт\.док|ностальжи|величайш|все или ничего|тактика|видео дня|перед матчем|после матча|ток-шоу|эксклюзив|тревел|подробно|трансферы|гала-концерт|лучшие|легенды|неделя|история|документальн|уточняется|felvezető|értékelő|összefoglaló|magazin|magazín|highlights|sestřih|zprávy|hírek|noticias|resumen|rewind|epic moments|best of|all access|documentary|dokument|tonight|pregame|postgame|pre-game|post-game|countdown|recap|press conference|paddock|pit walk|in-game|full match replay|match time)/iu';
 
     /** Сегменты без смысла: качество, «премьера», «сегодня». */
     private const array FILLERS = ['hd', 'sd', 'uhd', 'fhd', '4k', 'premier', 'premiera', 'premiéra', 'mai', 'dnes'];
@@ -88,7 +85,7 @@ final class TitleParser
             }
         }
 
-        if (preg_match(self::SHOWS, $text) || preg_match(self::IGNORED, $text)) {
+        if (preg_match(self::SHOWS, $text)) {
             return null;
         }
 
@@ -205,7 +202,9 @@ final class TitleParser
         }
 
         if ($sport === null && $teams !== null) {
-            $sport = $sportHint;
+            // Ни в названии, ни у канала вида спорта нет («Испания. Бетис – Осасуна»):
+            // соперники есть — пусть их ищут во всех видах спорта.
+            $sport = $sportHint ?? ParsedTitle::ANY_SPORT;
         }
 
         if ($sport === null) {
@@ -247,14 +246,15 @@ final class TitleParser
 
     /**
      * Где резать название на сегменты: «. » после слова (не после инициала
-     * «Д. Кун»), после цифры или скобки; «, », «: », « / ». И перед видом
+     * «Д. Кун»), после цифры, скобки или римского номера лиги («NB I.»);
+     * «, », «: », « / ». И перед видом
      * спорта даже после сокращения: «Боруссия Д. Футбол. Чемпионат Германии».
      */
     private function separators(): string
     {
         $sports = implode('|', array_map(fn (string $keyword) => preg_quote($keyword, '/'), SportRegistry::keywords()));
 
-        return '/(?<=[^\s.]{3}|\d|\)|")\.\s+|\.\s+(?=(?:'.$sports.')(?:[.,:]|$))|,\s+|:\s+|\s+\/\s+/iu';
+        return '/(?<=[^\s.]{3}|\d|\)|"|\sI|\sII|\sIII)\.\s+|\.\s+(?=(?:'.$sports.')(?:[.,:]|$))|,\s+|:\s+|\s+\/\s+/iu';
     }
 
     /**

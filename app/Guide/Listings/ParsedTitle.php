@@ -7,6 +7,9 @@ namespace App\Guide\Listings;
  */
 final readonly class ParsedTitle
 {
+    /** Вид спорта неизвестен: ни в названии, ни у канала его нет, а соперники есть. */
+    public const string ANY_SPORT = 'any';
+
     public function __construct(
         public string $sport,
         /** Матч — «Хозяева — Гости», иначе название события («Гран-при Бахрейна»). */
@@ -22,6 +25,11 @@ final readonly class ParsedTitle
         /** Явный повтор: дата прошедшего матча «(04.10.2026)», часть записи «1–3 c». */
         public bool $replay,
     ) {}
+
+    public function knowsSport(): bool
+    {
+        return $this->sport !== self::ANY_SPORT;
+    }
 
     public function hasTeams(): bool
     {

@@ -50,12 +50,20 @@ final class ChannelMatcher
 
             // «FIFAPlus.uk@Spain» — своя версия канала: по общему «FIFAPlus» её не искать.
             $variant = preg_match('/@(.+)$/', (string) $channel->tvg_id, $match) && ! in_array(strtolower($match[1]), self::FEEDS, true);
-            $keys = array_filter(array_unique([$this->key($channel->name), $country !== null && ! $variant ? $this->key($this->base((string) $tvgId)) : '']));
+            $base = $country !== null && ! $variant ? $this->base((string) $tvgId) : '';
+            // «Canal+ Sport 6 SK», «CanalPlusSport6SK.sk» — страна в конце названия, как у телегида «… HD IL».
+            $keys = array_filter(array_unique([
+                $this->key($channel->name),
+                $this->key($this->withoutCountry($channel->name, $country)),
+                $this->key($base),
+                $this->key($this->withoutCountry($base, $country)),
+            ]));
             foreach ($keys as $key) {
                 foreach ($names[$key] ?? [] as $entry) {
                     // Страна канала телегида неизвестна — не повод отказать, но своя страна лучше.
                     $sameCountry = $country === null || $this->sameCountry($country, $entry['countries']);
-                    if (! $sameCountry && $entry['countries'] !== [] && ! in_array($entry['source'], $anyCountry, true)) {
+                    if (! $sameCountry && $entry['countries'] !== [] && ! in_array($entry['source'], $anyCountry, true)
+                        && ! $this->neighbours((string) $country, $entry['countries'])) {
                         continue;
                     }
 
@@ -173,6 +181,25 @@ final class ChannelMatcher
         $uk = ['gb', 'uk'];
 
         return in_array($country, $countries, true) || (in_array($country, $uk, true) && array_intersect($uk, $countries) !== []);
+    }
+
+    /** «Canal+ Sport 6 SK» → «Canal+ Sport 6»: только если это страна самого канала. */
+    private function withoutCountry(string $name, ?string $country): string
+    {
+        return $country !== null ? (string) preg_replace('/[\s.]*'.preg_quote(strtoupper($country), '/').'$/u', '', $name) : $name;
+    }
+
+    /**
+     * Соседи с общими каналами: Canal+ Sport CZ/SK — один и тот же. Такой
+     * канал телегида берётся, только если своей страны нет (country = false).
+     *
+     * @param  list<string>  $countries
+     */
+    private function neighbours(string $country, array $countries): bool
+    {
+        $czsk = ['cz', 'sk'];
+
+        return in_array($country, $czsk, true) && array_intersect($czsk, $countries) !== [];
     }
 
     /** «IL», «DE» — страна; «HD», «TV» (Тувалу, но нет) — нет. */
