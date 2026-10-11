@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Http;
 /**
  * Xtream Codes API Dispatcharr: каналы, категории, их tvg-id и адреса потоков.
  * Телегид у нас свой (App\Guide\Listings).
+ *
+ * Два адреса: $url — для браузера (из него ссылки на потоки), $apiUrl — для
+ * запросов самого приложения. В контейнере публичный адрес закрыт Traefik
+ * (nas-admin-only), и API идёт к Dispatcharr напрямую по сети Docker.
  */
 final readonly class XtreamClient
 {
@@ -16,6 +20,7 @@ final readonly class XtreamClient
         private string $url,
         private string $username,
         private string $password,
+        private ?string $apiUrl = null,
     ) {}
 
     /**
@@ -44,7 +49,7 @@ final readonly class XtreamClient
     public function tvgIds(): array
     {
         $playlist = Http::timeout(self::TIMEOUT_SECONDS)
-            ->get("{$this->url}/output/m3u", ['tvg_id_source' => 'tvg_id'])
+            ->get("{$this->apiBase()}/output/m3u", ['tvg_id_source' => 'tvg_id'])
             ->throw()
             ->body();
 
@@ -75,11 +80,16 @@ final readonly class XtreamClient
     private function api(string $action): array
     {
         $response = Http::timeout(self::TIMEOUT_SECONDS)
-            ->get("{$this->url}/player_api.php", [...$this->credentials(), 'action' => $action])
+            ->get("{$this->apiBase()}/player_api.php", [...$this->credentials(), 'action' => $action])
             ->throw()
             ->json();
 
         return is_array($response) ? array_values($response) : [];
+    }
+
+    private function apiBase(): string
+    {
+        return $this->apiUrl ?? $this->url;
     }
 
     /**

@@ -19,13 +19,23 @@ composer dev                # server, queue, logs, scheduler, Vite
 
 `php artisan db:seed` creates `demo@sports.test` / `password` — development only.
 
+## Deployment (homelab, Dokploy)
+
+Production runs at http://sports.home.internal as the Dokploy Compose stack
+`sports` (`web` + `scheduler`), image `ghcr.io/kamabyte/sports-app`. Setup,
+environment and data paths: [`deploy/dokploy/README.md`](../deploy/dokploy/README.md).
+Release: `git push && deploy/dokploy/deploy.sh`. In the container Dispatcharr's
+API is reached via `DISPATCHARR_API_URL` (the public host returns 403 to
+containers); stream links still use `DISPATCHARR_URL`.
+
 ## Configuration (`.env`, `config/sports.php`)
 
 | Variable                                                                                        | Default                     | Meaning                                                |
 | ----------------------------------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------ |
 | `SPORTS_SOURCE`                                                                                 | `dispatcharr`               | `fake` = generated catalog (tests, demos)              |
 | `SPORTS_TIMEZONE`                                                                               | `Europe/Moscow`             | how days are split and times shown                     |
-| `DISPATCHARR_URL`                                                                               | `http://iptv.home.internal` | Dispatcharr base URL                                   |
+| `DISPATCHARR_URL`                                                                               | `http://iptv.home.internal` | Dispatcharr base URL (stream links for the browser)    |
+| `DISPATCHARR_API_URL`                                                                           | —                           | server-side API address when `DISPATCHARR_URL` is closed to the app (Docker) |
 | `DISPATCHARR_USERNAME` / `_PASSWORD`                                                            | —                           | Xtream (XC) login; **only in `.env`**, never committed |
 | `DISPATCHARR_NAME`                                                                              | `Dispatcharr`               | provider label on broadcasts                           |
 | `GUIDES_REFRESH_HOURS`                                                                          | `12`                        | how often XMLTV files are re-downloaded                |

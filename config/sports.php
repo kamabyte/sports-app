@@ -361,6 +361,9 @@ return [
         'dispatcharr' => [
             'name' => env('DISPATCHARR_NAME', 'Dispatcharr'),
             'url' => env('DISPATCHARR_URL', 'http://iptv.home.internal'),
+            // Адрес для запросов приложения, если публичный ему закрыт (контейнер
+            // в Dokploy: http://<контейнер dispatcharr>:9191). Пусто — DISPATCHARR_URL.
+            'api_url' => env('DISPATCHARR_API_URL'),
             'username' => env('DISPATCHARR_USERNAME'),
             'password' => env('DISPATCHARR_PASSWORD'),
             // Язык каналов по категории Dispatcharr: у трансляций на нём — приоритет.

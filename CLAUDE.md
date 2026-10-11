@@ -75,6 +75,7 @@ php artisan catalog:discover               # page registry from the Flashscore s
 php artisan catalog:import [--sport=tennis] [--dry-run]   # planned run without options (needs FLASHSCORE_ENABLED)
 php artisan guide:import                   # channels + guides → catalog_airings (every 30 min)
 php artisan fixtures:import | logos:sync   # legacy, no-ops in standalone
+git push && deploy/dokploy/deploy.sh       # release to sports.home.internal (deploy/dokploy/README.md)
 ```
 
 Screenshots: `php artisan serve --port=8123` + Playwright with installed

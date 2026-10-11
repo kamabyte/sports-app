@@ -57,6 +57,7 @@ class AppServiceProvider extends ServiceProvider
             url: rtrim((string) config('sports.providers.dispatcharr.url'), '/'),
             username: (string) config('sports.providers.dispatcharr.username'),
             password: (string) config('sports.providers.dispatcharr.password'),
+            apiUrl: filled($apiUrl = config('sports.providers.dispatcharr.api_url')) ? rtrim((string) $apiUrl, '/') : null,
         ));
 
         $this->app->bind(EventBroadcasts::class, fn () => new EventBroadcasts(

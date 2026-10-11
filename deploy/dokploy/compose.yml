@@ -1,0 +1,92 @@
+# Sports — стек Dokploy (тип Compose, источник Raw). Выкатывает deploy/dokploy/deploy.sh.
+#
+#   web        Laravel + nginx; домен — во вкладке Domains стека (порт 8080)
+#   scheduler  schedule:work: guide:import каждые полчаса, catalog:import раз в час,
+#              catalog:discover раз в неделю (routes/console.php)
+#
+# Порт наружу не публикуется: приложение открывается через домен в Dokploy.
+# Потоки браузер берёт прямо у Dispatcharr (DISPATCHARR_URL), а сам контейнер
+# ходит к нему по сети dokploy-network (DISPATCHARR_API_URL): публичный адрес
+# закрыт для контейнеров middleware nas-admin-only.
+#
+# Данные на хосте (владелец — www-data, uid/gid 33:33):
+#   /srv/sports/state/database   база SQLite (WAL: web читает, пока scheduler пишет)
+#   /srv/sports/state/app        storage/app: телегиды, кеш Flashscore, эмблемы
+
+x-env: &env
+    APP_NAME: Sports
+    APP_ENV: production
+    APP_DEBUG: 'false'
+    APP_KEY: ${APP_KEY:?задайте APP_KEY во вкладке Environment}
+    APP_URL: ${APP_URL:?задайте APP_URL во вкладке Environment}
+    APP_LOCALE: ru
+    APP_FALLBACK_LOCALE: en
+    LOG_CHANNEL: stderr
+    LOG_LEVEL: warning
+    DB_CONNECTION: sqlite
+    DB_DATABASE: /state/database/database.sqlite
+    DB_JOURNAL_MODE: wal
+    DB_BUSY_TIMEOUT: '10000'
+    SESSION_DRIVER: database
+    SESSION_LIFETIME: '43200'
+    CACHE_STORE: database
+    QUEUE_CONNECTION: sync
+    SPORTS_MODE: standalone
+    SPORTS_TIMEZONE: ${SPORTS_TIMEZONE:-Europe/Moscow}
+    DISPATCHARR_URL: ${DISPATCHARR_URL:-http://iptv.home.internal}
+    DISPATCHARR_API_URL: ${DISPATCHARR_API_URL:?задайте DISPATCHARR_API_URL — адрес Dispatcharr в сети dokploy-network}
+    DISPATCHARR_USERNAME: ${DISPATCHARR_USERNAME:?задайте DISPATCHARR_USERNAME (логин Xtream)}
+    DISPATCHARR_PASSWORD: ${DISPATCHARR_PASSWORD:?задайте DISPATCHARR_PASSWORD (пароль Xtream)}
+    # Источник каталога — решение владельца (docs/operations.md, «Flashscore lite source»).
+    FLASHSCORE_ENABLED: ${FLASHSCORE_ENABLED:-false}
+
+x-volumes: &volumes
+    - type: bind
+      source: /srv/sports/state/database
+      target: /state/database
+      bind: { create_host_path: false }
+    - type: bind
+      source: /srv/sports/state/app
+      target: /var/www/html/storage/app
+      bind: { create_host_path: false }
+
+services:
+    web:
+        image: ghcr.io/kamabyte/sports-app:${IMAGE_TAG:-latest}
+        pull_policy: always
+        restart: unless-stopped
+        environment:
+            <<: *env
+            # Миграции, storage:link и кеши Laravel при старте — только здесь.
+            AUTORUN_ENABLED: 'true'
+            AUTORUN_LARAVEL_MIGRATION_ISOLATION: 'false'
+        volumes: *volumes
+        networks: [default, dokploy-network]
+        deploy:
+            resources:
+                limits: { cpus: '1', memory: 512m }
+
+    scheduler:
+        image: ghcr.io/kamabyte/sports-app:${IMAGE_TAG:-latest}
+        pull_policy: always
+        restart: unless-stopped
+        command: ['php', 'artisan', 'schedule:work']
+        # runInBackground() отпускает задачи фоном через sh; осиротевшие процессы
+        # достаются PID 1. tini их подбирает и доставляет SIGTERM.
+        init: true
+        environment:
+            <<: *env
+            AUTORUN_ENABLED: 'false'
+        volumes: *volumes
+        # Dispatcharr — по сети dokploy-network (DISPATCHARR_API_URL).
+        networks: [default, dokploy-network]
+        healthcheck:
+            disable: true
+        # Разбор телегидов (~130 МБ XMLTV) и импорт каталога — тяжелее веба.
+        deploy:
+            resources:
+                limits: { cpus: '1', memory: 1g }
+
+networks:
+    dokploy-network:
+        external: true
